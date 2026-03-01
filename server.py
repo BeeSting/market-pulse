@@ -36,6 +36,8 @@ CRYPTO_SYMBOLS = ["BTCUSD", "ETHUSD"]
 
 ALL_TICKERS = list(dict.fromkeys(PORTFOLIO_TICKERS + WATCHLIST_TICKERS))
 
+TOP_10 = ["SLV", "IREN", "CIFR", "NBIS", "SOFI", "IAU", "APLD", "RKLB", "TMDX", "WULF"]
+
 
 # ── Quote Fetchers ────────────────────────────────────────
 def fetch_polygon(tickers):
@@ -366,6 +368,278 @@ def api_polymarket():
         "count": len(result),
         "markets": result,
     }), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Analyst Targets ──────────────────────────────────────
+@app.route("/api/analyst-targets")
+def api_analyst_targets():
+    def _fetch_ticker(ticker):
+        estimates_url = f"https://financialmodelingprep.com/stable/analyst-estimates?symbol={ticker}&apikey={FMP_KEY}"
+        ratings_url = f"https://financialmodelingprep.com/stable/analyst-recommendations?symbol={ticker}&apikey={FMP_KEY}"
+        results = {"symbol": ticker, "consensus": {}, "recent_ratings": []}
+        try:
+            req = urllib.request.Request(estimates_url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                estimates = json.loads(resp.read().decode())
+            if isinstance(estimates, list) and estimates:
+                results["consensus"] = estimates[0]
+        except Exception:
+            pass
+        try:
+            req = urllib.request.Request(ratings_url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                ratings = json.loads(resp.read().decode())
+            if isinstance(ratings, list):
+                results["recent_ratings"] = ratings[:5]
+        except Exception:
+            pass
+        return ticker, results
+
+    try:
+        targets = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_ticker, t): t for t in TOP_10}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    targets[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    targets[t] = {"symbol": t, "error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "targets": targets,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Congress Trades ───────────────────────────────────────
+@app.route("/api/congress-trades")
+def api_congress_trades():
+    def _fetch_senate(ticker):
+        url = f"https://financialmodelingprep.com/stable/senate-trading?symbol={ticker}&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        return data if isinstance(data, list) else []
+
+    try:
+        all_trades = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_senate, t): t for t in TOP_10}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    all_trades.extend(future.result(timeout=20))
+                except Exception:
+                    pass
+        # Also fetch general recent trades
+        try:
+            url_general = f"https://financialmodelingprep.com/stable/senate-trading?apikey={FMP_KEY}"
+            req = urllib.request.Request(url_general, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                general = json.loads(resp.read().decode())
+            if isinstance(general, list):
+                all_trades.extend(general[:30])
+        except Exception:
+            pass
+        # Deduplicate by converting to set of JSON strings then back
+        seen = set()
+        deduped = []
+        for trade in all_trades:
+            key = json.dumps(trade, sort_keys=True)
+            if key not in seen:
+                seen.add(key)
+                deduped.append(trade)
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "trades": deduped,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Earnings Calendar ─────────────────────────────────────
+@app.route("/api/earnings-calendar")
+def api_earnings_calendar():
+    try:
+        today = datetime.date.today()
+        four_months = today + datetime.timedelta(days=120)
+        url = f"https://financialmodelingprep.com/stable/earning-calendar?from={today}&to={four_months}&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode())
+        all_syms = set(PORTFOLIO_TICKERS + WATCHLIST_TICKERS)
+        filtered = [
+            entry for entry in (data if isinstance(data, list) else [])
+            if entry.get("symbol", "") in all_syms
+        ]
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "earnings": filtered,
+            "count": len(filtered),
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Market Movers ─────────────────────────────────────────
+@app.route("/api/market-movers")
+def api_market_movers():
+    def _fetch(url):
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        return data if isinstance(data, list) else []
+
+    try:
+        gainers_url = f"https://financialmodelingprep.com/stable/market-biggest-gainers?apikey={FMP_KEY}"
+        losers_url = f"https://financialmodelingprep.com/stable/market-biggest-losers?apikey={FMP_KEY}"
+        active_url = f"https://financialmodelingprep.com/stable/most-active-stocks?apikey={FMP_KEY}"
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            f_gainers = executor.submit(_fetch, gainers_url)
+            f_losers = executor.submit(_fetch, losers_url)
+            f_active = executor.submit(_fetch, active_url)
+            gainers = f_gainers.result(timeout=20)[:10]
+            losers = f_losers.result(timeout=20)[:10]
+            most_active = f_active.result(timeout=20)[:10]
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "gainers": gainers,
+            "losers": losers,
+            "most_active": most_active,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Sentiment ─────────────────────────────────────────────
+@app.route("/api/sentiment")
+def api_sentiment():
+    def _fetch_grades(ticker):
+        url = f"https://financialmodelingprep.com/stable/stock-grade?symbol={ticker}&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        grades = data if isinstance(data, list) else []
+        return ticker, {"grades": grades[:5]}
+
+    try:
+        sentiment = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_grades, t): t for t in TOP_10}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    sentiment[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    sentiment[t] = {"grades": [], "error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "sentiment": sentiment,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Macro ─────────────────────────────────────────────────
+@app.route("/api/macro")
+def api_macro():
+    def _fetch(url):
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        return data if isinstance(data, list) else []
+
+    try:
+        today = datetime.date.today()
+        ten_days_ago = today - datetime.timedelta(days=10)
+        one_month_ahead = today + datetime.timedelta(days=31)
+        treasury_url = f"https://financialmodelingprep.com/stable/treasury-rates?from={ten_days_ago}&to={today}&apikey={FMP_KEY}"
+        econ_url = f"https://financialmodelingprep.com/stable/economic-calendar?from={today}&to={one_month_ahead}&apikey={FMP_KEY}"
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            f_treasury = executor.submit(_fetch, treasury_url)
+            f_econ = executor.submit(_fetch, econ_url)
+            treasury_rates = f_treasury.result(timeout=20)
+            economic_calendar = f_econ.result(timeout=20)
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "treasury_rates": treasury_rates,
+            "economic_calendar": economic_calendar,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Technicals (RSI) ──────────────────────────────────────
+@app.route("/api/technicals")
+def api_technicals():
+    def _fetch_rsi(ticker):
+        url = f"https://api.polygon.io/v1/indicators/rsi/{ticker}?timespan=day&window=14&limit=1&apiKey={POLYGON_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        results = data.get("results", {}).get("values", [])
+        if results:
+            value = results[0].get("value", None)
+            if value is not None:
+                value = round(value, 2)
+                if value < 30:
+                    signal = "oversold"
+                elif value > 70:
+                    signal = "overbought"
+                else:
+                    signal = "neutral"
+                return ticker, {"value": value, "signal": signal}
+        return ticker, {"value": None, "signal": "unknown"}
+
+    try:
+        rsi = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_rsi, t): t for t in TOP_10}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    rsi[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    rsi[t] = {"value": None, "signal": "error", "error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "rsi": rsi,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Insider Transactions ──────────────────────────────────
+@app.route("/api/insider")
+def api_insider():
+    def _fetch_insider(ticker):
+        url = f"https://financialmodelingprep.com/stable/insider-trading?symbol={ticker}&limit=5&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        return ticker, data if isinstance(data, list) else []
+
+    try:
+        insider = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_insider, t): t for t in TOP_10}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    insider[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    insider[t] = {"error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "insider": insider,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
 
 
 # ── Static File Serving ───────────────────────────────────

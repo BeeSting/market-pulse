@@ -1433,6 +1433,568 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   margin-top: auto;
 }
 .social-link:hover { color: var(--color-text); text-decoration: underline; }
+
+/* ==========================================
+   ENRICHED DATA SECTIONS — NEW CSS
+   ========================================== */
+
+/* Loading placeholder */
+.loading-placeholder {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* Analyst Table */
+.analyst-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.analyst-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: var(--text-xs);
+  min-width: 680px;
+}
+.analyst-table thead {
+  background: var(--color-surface-2);
+  position: sticky; top: 0; z-index: 2;
+}
+.analyst-table th {
+  padding: var(--space-3);
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
+}
+.analyst-table th.text-right,
+.analyst-table td.text-right { text-align: right; }
+.analyst-table tbody tr {
+  border-bottom: 1px solid var(--color-divider);
+  transition: background var(--transition-interactive);
+}
+.analyst-table tbody tr:hover { background: var(--color-surface-2); }
+.analyst-table td {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.analyst-table .ticker-col { font-weight: 600; }
+
+/* Congress Cards */
+.congress-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .congress-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .congress-grid { grid-template-columns: repeat(3, 1fr); } }
+.congress-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: border-color var(--transition-interactive);
+}
+.congress-card:hover { border-color: var(--color-border-strong); }
+.congress-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-2);
+  gap: var(--space-2);
+}
+.congress-politician {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+.congress-ticker {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.congress-type-buy { color: var(--color-green); font-weight: 700; font-size: var(--text-xs); }
+.congress-type-sell { color: var(--color-red); font-weight: 700; font-size: var(--text-xs); }
+.congress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.congress-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.congress-amount {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.congress-delay {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+/* Earnings Table */
+.earnings-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.earnings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: var(--text-xs);
+  min-width: 500px;
+}
+.earnings-table thead {
+  background: var(--color-surface-2);
+  position: sticky; top: 0; z-index: 2;
+}
+.earnings-table th {
+  padding: var(--space-3);
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
+}
+.earnings-table th.text-right,
+.earnings-table td.text-right { text-align: right; }
+.earnings-table tbody tr {
+  border-bottom: 1px solid var(--color-divider);
+  transition: background var(--transition-interactive);
+}
+.earnings-table tbody tr:hover { background: var(--color-surface-2); }
+.earnings-table td {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.earnings-table .ticker-col { font-weight: 600; }
+.earnings-time-badge {
+  display: inline-flex;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.earnings-time-badge.bmo { background: var(--color-amber-muted); color: var(--color-amber-text); }
+.earnings-time-badge.amc { background: var(--color-blue-muted); color: var(--color-blue-text); }
+
+/* Market Movers */
+.movers-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) { .movers-grid { grid-template-columns: repeat(3, 1fr); } }
+.movers-column {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.movers-column-header {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-border);
+}
+.movers-column-header.gainers { background: var(--color-green-muted); color: var(--color-green); }
+.movers-column-header.losers { background: var(--color-red-muted); color: var(--color-red); }
+.movers-column-header.active { background: var(--color-blue-muted); color: var(--color-blue); }
+[data-theme="light"] .movers-column-header.gainers { color: var(--color-green-text); }
+[data-theme="light"] .movers-column-header.losers { color: var(--color-red-text); }
+[data-theme="light"] .movers-column-header.active { color: var(--color-blue-text); }
+.movers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.movers-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  font-variant-numeric: tabular-nums;
+}
+.movers-item:last-child { border-bottom: none; }
+.movers-sym {
+  font-weight: 700;
+  font-size: var(--text-xs);
+  min-width: 48px;
+  color: var(--color-text);
+}
+.movers-name {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.movers-price {
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.movers-change {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  min-width: 48px;
+  text-align: right;
+  white-space: nowrap;
+}
+.movers-change.up { color: var(--color-green); }
+.movers-change.dn { color: var(--color-red); }
+.movers-change.bl { color: var(--color-blue); }
+
+/* Sentiment Cards */
+.sentiment-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .sentiment-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .sentiment-grid { grid-template-columns: repeat(3, 1fr); } }
+.sentiment-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-interactive);
+}
+.sentiment-card:hover { border-color: var(--color-border-strong); }
+.sentiment-card-header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+.sentiment-grade-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sentiment-grade-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  font-size: var(--text-xs);
+}
+.sentiment-grade-item:last-child { border-bottom: none; }
+.sentiment-firm {
+  color: var(--color-text-muted);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sentiment-action {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.sentiment-action.upgrade { background: var(--color-green-muted); color: var(--color-green); }
+.sentiment-action.downgrade { background: var(--color-red-muted); color: var(--color-red); }
+.sentiment-action.reiterated { background: var(--color-blue-muted); color: var(--color-blue); }
+.sentiment-action.initiated { background: var(--color-amber-muted); color: var(--color-amber); }
+.sentiment-action.maintained { background: var(--color-surface-3); color: var(--color-text-muted); }
+[data-theme="light"] .sentiment-action.upgrade { color: var(--color-green-text); }
+[data-theme="light"] .sentiment-action.downgrade { color: var(--color-red-text); }
+[data-theme="light"] .sentiment-action.reiterated { color: var(--color-blue-text); }
+[data-theme="light"] .sentiment-action.initiated { color: var(--color-amber-text); }
+.sentiment-grade-label {
+  font-weight: 600;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+.sentiment-grade-label.buy { color: var(--color-green); }
+.sentiment-grade-label.hold { color: var(--color-amber); }
+.sentiment-grade-label.sell { color: var(--color-red); }
+.sentiment-grade-date {
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+/* Macro Dashboard */
+.macro-layout {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) { .macro-layout { grid-template-columns: 1fr 1fr; } }
+.macro-subsection-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.01em;
+}
+.macro-yields-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (min-width: 480px) { .macro-yields-grid { grid-template-columns: repeat(3, 1fr); } }
+.macro-yield-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+  transition: border-color var(--transition-interactive);
+}
+.macro-yield-card:hover { border-color: var(--color-border-strong); }
+.macro-yield-maturity {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+.macro-yield-value {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+.macro-events-list {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.macro-event-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  transition: background var(--transition-interactive);
+}
+.macro-event-item:last-child { border-bottom: none; }
+.macro-event-item:hover { background: var(--color-surface-2); }
+.macro-event-date {
+  color: var(--color-text-faint);
+  min-width: 60px;
+  white-space: nowrap;
+}
+.macro-event-name {
+  flex: 1;
+  color: var(--color-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.macro-event-vals {
+  display: flex;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+.macro-event-val-item {
+  text-align: right;
+}
+.macro-event-val-label {
+  color: var(--color-text-faint);
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.macro-event-val-num { color: var(--color-text); font-weight: 600; }
+.macro-impact-badge {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.macro-impact-badge.high { background: var(--color-red-muted); color: var(--color-red); }
+.macro-impact-badge.medium { background: var(--color-amber-muted); color: var(--color-amber); }
+.macro-impact-badge.low { background: var(--color-surface-3); color: var(--color-text-faint); }
+[data-theme="light"] .macro-impact-badge.high { color: var(--color-red-text); }
+[data-theme="light"] .macro-impact-badge.medium { color: var(--color-amber-text); }
+
+/* RSI / Technicals */
+.rsi-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 640px) { .rsi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .rsi-grid { grid-template-columns: repeat(5, 1fr); } }
+.rsi-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+  transition: border-color var(--transition-interactive);
+}
+.rsi-card:hover { border-color: var(--color-border-strong); }
+.rsi-ticker {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-2);
+}
+.rsi-value {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-3);
+  color: var(--color-text);
+}
+.rsi-bar-track {
+  height: 8px;
+  background: var(--bar-track);
+  border-radius: 4px;
+  overflow: visible;
+  position: relative;
+  margin-bottom: var(--space-3);
+}
+.rsi-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-blue);
+  min-width: 4px;
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rsi-bar-fill.oversold { background: var(--color-green); }
+.rsi-bar-fill.overbought { background: var(--color-red); }
+.rsi-bar-zones {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5625rem;
+  color: var(--color-text-faint);
+  margin-top: var(--space-1);
+}
+.rsi-signal {
+  display: inline-flex;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+.rsi-signal.oversold { background: var(--color-green-muted); color: var(--color-green); }
+.rsi-signal.overbought { background: var(--color-red-muted); color: var(--color-red); }
+.rsi-signal.neutral { background: var(--color-surface-3); color: var(--color-text-faint); }
+[data-theme="light"] .rsi-signal.oversold { color: var(--color-green-text); }
+[data-theme="light"] .rsi-signal.overbought { color: var(--color-red-text); }
+
+/* Insider Table */
+.insider-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.insider-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: var(--text-xs);
+  min-width: 700px;
+}
+.insider-table thead {
+  background: var(--color-surface-2);
+  position: sticky; top: 0; z-index: 2;
+}
+.insider-table th {
+  padding: var(--space-3);
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
+}
+.insider-table th.text-right,
+.insider-table td.text-right { text-align: right; }
+.insider-table tbody tr {
+  border-bottom: 1px solid var(--color-divider);
+  transition: background var(--transition-interactive);
+}
+.insider-table tbody tr:hover { background: var(--color-surface-2); }
+.insider-table td {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.insider-table .ticker-col { font-weight: 600; }
+.insider-table .name-col {
+  color: var(--color-text-muted);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insider-table .title-col {
+  color: var(--color-text-faint);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insider-type-buy { color: var(--color-green); font-weight: 700; }
+.insider-type-sell { color: var(--color-red); font-weight: 700; }
+
+/* Responsive helpers */
+@media (max-width: 640px) {
+  .rsi-grid { grid-template-columns: repeat(2, 1fr); }
+  .macro-yields-grid { grid-template-columns: repeat(2, 1fr); }
+  .macro-event-vals { display: none; }
+}
 </style>
 </head>
 <body>
@@ -1461,6 +2023,14 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
       <li><a href="#social">Social</a></li>
       <li><a href="#portfolio" class="nav-portfolio-link">Portfolio</a></li>
       <li><a href="#buylist">Buy List</a></li>
+      <li><a href="#analyst">Analyst</a></li>
+      <li><a href="#congress">Congress</a></li>
+      <li><a href="#earnings">Earnings</a></li>
+      <li><a href="#movers">Movers</a></li>
+      <li><a href="#sentiment-section">Sentiment</a></li>
+      <li><a href="#macro">Macro</a></li>
+      <li><a href="#technicals">Technicals</a></li>
+      <li><a href="#insider-section">Insider</a></li>
     </ul>
     <div class="nav-actions">
       <span class="refresh-timestamp" id="last-updated">Prices: Fri Feb 28 close</span>
@@ -1495,6 +2065,14 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   <a href="#social" onclick="document.getElementById('mobile-menu').classList.remove('open')">Social Sentiment</a>
   <a href="#portfolio" class="mobile-portfolio-link" onclick="document.getElementById('mobile-menu').classList.remove('open')">Portfolio</a>
   <a href="#buylist" onclick="document.getElementById('mobile-menu').classList.remove('open')">Buy List</a>
+  <a href="#analyst" onclick="document.getElementById('mobile-menu').classList.remove('open')">Analyst Price Targets</a>
+  <a href="#congress" onclick="document.getElementById('mobile-menu').classList.remove('open')">Congressional Trading</a>
+  <a href="#earnings" onclick="document.getElementById('mobile-menu').classList.remove('open')">Earnings Calendar</a>
+  <a href="#movers" onclick="document.getElementById('mobile-menu').classList.remove('open')">Market Movers</a>
+  <a href="#sentiment-section" onclick="document.getElementById('mobile-menu').classList.remove('open')">Analyst Sentiment</a>
+  <a href="#macro" onclick="document.getElementById('mobile-menu').classList.remove('open')">Macro Dashboard</a>
+  <a href="#technicals" onclick="document.getElementById('mobile-menu').classList.remove('open')">Technical Indicators</a>
+  <a href="#insider-section" onclick="document.getElementById('mobile-menu').classList.remove('open')">Insider Transactions</a>
 </div>
 
 <!-- NEWS TICKER -->
@@ -4178,6 +4756,137 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   </div>
 </section>
 
+<!-- ==========================================
+     ANALYST PRICE TARGETS
+     ========================================== -->
+<section id="analyst">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Analyst Price Targets</h2>
+      <p class="section-subtitle">Consensus targets, recent upgrades &amp; downgrades for your top 10 holdings. Updates on refresh.</p>
+    </div>
+    <div class="fade-in" id="analyst-targets-container">
+      <div class="loading-placeholder">Loading analyst data...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     CONGRESSIONAL TRADING
+     ========================================== -->
+<section id="congress">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Congressional Trading</h2>
+      <p class="section-subtitle">Recent stock trades by members of Congress. Filtered for your portfolio tickers.</p>
+    </div>
+    <div class="fade-in" id="congress-container">
+      <div class="loading-placeholder">Loading congressional trading data...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     EARNINGS CALENDAR
+     ========================================== -->
+<section id="earnings">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Earnings Calendar</h2>
+      <p class="section-subtitle">Upcoming earnings dates for your portfolio holdings.</p>
+    </div>
+    <div class="fade-in" id="earnings-container">
+      <div class="loading-placeholder">Loading earnings calendar...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     MARKET MOVERS
+     ========================================== -->
+<section id="movers">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Market Movers</h2>
+      <p class="section-subtitle">Today's top gainers, losers, and most actively traded stocks.</p>
+    </div>
+    <div class="fade-in" id="movers-container">
+      <div class="loading-placeholder">Loading market movers...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     ANALYST SENTIMENT
+     ========================================== -->
+<section id="sentiment-section">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Analyst Sentiment</h2>
+      <p class="section-subtitle">Recent analyst grades and sentiment for your top 10 holdings.</p>
+    </div>
+    <div class="fade-in" id="sentiment-container">
+      <div class="loading-placeholder">Loading analyst sentiment...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     MACRO DASHBOARD
+     ========================================== -->
+<section id="macro">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Macro Dashboard</h2>
+      <p class="section-subtitle">US Treasury yields, inflation, and upcoming economic events.</p>
+    </div>
+    <div class="macro-layout fade-in">
+      <div>
+        <div class="macro-subsection-title">Treasury Yield Curve</div>
+        <div class="macro-yields-grid" id="macro-yields-container">
+          <div class="loading-placeholder" style="grid-column:1/-1">Loading yields...</div>
+        </div>
+      </div>
+      <div>
+        <div class="macro-subsection-title">Economic Calendar</div>
+        <div id="macro-events-container">
+          <div class="loading-placeholder">Loading economic events...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     TECHNICAL INDICATORS
+     ========================================== -->
+<section id="technicals">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Technical Indicators</h2>
+      <p class="section-subtitle">RSI (14-day) signals for your top 10 holdings. &lt;30 = Oversold, &gt;70 = Overbought.</p>
+    </div>
+    <div class="fade-in" id="technicals-container">
+      <div class="loading-placeholder">Loading technical indicators...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     INSIDER TRANSACTIONS
+     ========================================== -->
+<section id="insider-section">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Insider Transactions</h2>
+      <p class="section-subtitle">Recent insider buying and selling activity for your top 10 holdings.</p>
+    </div>
+    <div class="fade-in" id="insider-container">
+      <div class="loading-placeholder">Loading insider transactions...</div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <!-- ==========================================
@@ -4370,6 +5079,9 @@ async function refreshPrices() {
       }
     }
 
+    // Fire enriched data fetch — non-blocking, does not delay the core refresh
+    refreshEnriched();
+
   } catch (err) {
     console.error('Refresh failed:', err);
     if (ts) ts.textContent = 'Refresh failed \u2014 try again';
@@ -4527,7 +5239,461 @@ function flashEl(el, cls) {
 // Auto-fetch on page load
 document.addEventListener('DOMContentLoaded', () => {
   refreshPrices();
+  // Also load enriched sections on first load (refreshPrices fires this too,
+  // but call here in case the user doesn't hit Refresh)
 });
+
+// ==========================================
+// ENRICHED DATA — refreshEnriched + render functions
+// ==========================================
+
+async function refreshEnriched() {
+  const endpoints = [
+    { url: API_BASE + '/api/analyst-targets', handler: renderAnalystTargets },
+    { url: API_BASE + '/api/congress-trades', handler: renderCongressTrades },
+    { url: API_BASE + '/api/earnings-calendar', handler: renderEarningsCalendar },
+    { url: API_BASE + '/api/market-movers', handler: renderMarketMovers },
+    { url: API_BASE + '/api/sentiment', handler: renderSentiment },
+    { url: API_BASE + '/api/macro', handler: renderMacro },
+    { url: API_BASE + '/api/technicals', handler: renderTechnicals },
+    { url: API_BASE + '/api/insider', handler: renderInsider },
+  ];
+
+  await Promise.allSettled(
+    endpoints.map(ep =>
+      fetch(ep.url)
+        .then(r => r.json())
+        .then(data => ep.handler(data))
+        .catch(err => console.warn('Enriched endpoint failed:', ep.url, err))
+    )
+  );
+}
+
+// ── Grade colour helper ────────────────────
+function gradeClass(grade) {
+  if (!grade) return 'hold';
+  const g = grade.toLowerCase();
+  if (/strong.?buy|outperform|overweight|accumulate|conviction.?buy/.test(g)) return 'buy';
+  if (/buy/.test(g)) return 'buy';
+  if (/strong.?sell|underperform|underweight|reduce/.test(g)) return 'sell';
+  if (/sell/.test(g)) return 'sell';
+  return 'hold';
+}
+
+// ── 1. Analyst Price Targets ───────────────
+function renderAnalystTargets(data) {
+  const el = document.getElementById('analyst-targets-container');
+  if (!el) return;
+  const targets = (data && data.targets) || {};
+  const tickers = Object.keys(targets);
+  if (!tickers.length) {
+    el.innerHTML = '<div class="loading-placeholder">No analyst data available.</div>';
+    return;
+  }
+
+  let rows = '';
+  tickers.forEach(sym => {
+    const t = targets[sym] || {};
+    const consensus = t.consensus || {};
+    const recs = consensus;
+    const grade = recs.analystRatingsGrade || '—';
+    const totalAnalysts = (recs.analystRatingsStrongBuy || 0) + (recs.analystRatingsBuy || 0) +
+      (recs.analystRatingsHold || 0) + (recs.analystRatingsSell || 0) + (recs.analystRatingsStrongSell || 0);
+    const buys = (recs.analystRatingsStrongBuy || 0) + (recs.analystRatingsBuy || 0);
+    const holds = recs.analystRatingsHold || 0;
+    const sells = (recs.analystRatingsSell || 0) + (recs.analystRatingsStrongSell || 0);
+    const gc = gradeClass(grade);
+    const gradeColor = gc === 'buy' ? 'var(--color-green)' : gc === 'sell' ? 'var(--color-red)' : 'var(--color-amber)';
+    const estEps = consensus.estimatedEpsAvg != null ? '$' + Number(consensus.estimatedEpsAvg).toFixed(2) : '—';
+    const estRev = consensus.estimatedRevenueAvg != null ? '$' + formatNum(consensus.estimatedRevenueAvg / 1e9) + 'B' : '—';
+    const date = (consensus.date || '').slice(0, 10);
+    rows += `<tr>
+      <td class="ticker-col">${sym}</td>
+      <td><span data-live-price="${sym}">—</span></td>
+      <td style="color:${gradeColor};font-weight:600">${grade || '—'}</td>
+      <td class="text-right">${totalAnalysts || '—'}</td>
+      <td class="text-right" style="color:var(--color-green)">${buys}</td>
+      <td class="text-right" style="color:var(--color-amber)">${holds}</td>
+      <td class="text-right" style="color:var(--color-red)">${sells}</td>
+      <td class="text-right">${estEps}</td>
+      <td class="text-right">${estRev}</td>
+      <td style="color:var(--color-text-faint)">${date}</td>
+    </tr>`;
+  });
+
+  el.innerHTML = `
+    <div class="analyst-table-wrap">
+      <table class="analyst-table" aria-label="Analyst price targets">
+        <thead><tr>
+          <th>Ticker</th>
+          <th>Current Price</th>
+          <th>Consensus Grade</th>
+          <th class="text-right"># Analysts</th>
+          <th class="text-right">Buys</th>
+          <th class="text-right">Holds</th>
+          <th class="text-right">Sells</th>
+          <th class="text-right">EPS Est.</th>
+          <th class="text-right">Rev Est.</th>
+          <th>Date</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── 2. Congressional Trading ───────────────
+function renderCongressTrades(data) {
+  const el = document.getElementById('congress-container');
+  if (!el) return;
+  const trades = (data && data.trades) || [];
+  if (!trades.length) {
+    el.innerHTML = '<div class="loading-placeholder">No recent congressional trades found for your portfolio.</div>';
+    return;
+  }
+
+  // Sort by date desc, limit 18
+  const sorted = [...trades].sort((a, b) =>
+    new Date(b.transactionDate || b.date || 0) - new Date(a.transactionDate || a.date || 0)
+  ).slice(0, 18);
+
+  const cards = sorted.map(t => {
+    const name = [t.firstName, t.lastName].filter(Boolean).join(' ') ||
+      t.senator || t.representative || 'Unknown';
+    const sym = t.symbol || t.ticker || '';
+    const type = (t.transactionType || t.type || '').toLowerCase();
+    const isBuy = /purchase|buy/i.test(type);
+    const typeLbl = isBuy ? 'Purchase' : /sale/i.test(type) ? 'Sale' : type || 'Unknown';
+    const amount = t.amount || t.range || '—';
+    const date = (t.transactionDate || t.date || '').slice(0, 10);
+    // Filing delay
+    let delay = '';
+    if (t.transactionDate && t.disclosureDate) {
+      const dDays = Math.round((new Date(t.disclosureDate) - new Date(t.transactionDate)) / 86400000);
+      delay = dDays > 0 ? dDays + 'd delay' : '';
+    }
+    const office = t.office || t.chamber || '';
+    return `<div class="congress-card">
+      <div class="congress-card-top">
+        <div>
+          <div class="congress-politician">${name.length > 24 ? name.slice(0,22)+'…' : name}</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-faint);margin-top:2px">${office}</div>
+        </div>
+        <span class="congress-ticker">${sym}</span>
+      </div>
+      <div class="congress-meta">
+        <span class="${isBuy ? 'congress-type-buy' : 'congress-type-sell'}">${typeLbl}</span>
+        <span class="congress-amount">${amount}</span>
+        <span style="color:var(--color-text-faint)">${date}</span>
+        ${delay ? `<span class="congress-delay">${delay}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="congress-grid">${cards}</div>`;
+}
+
+// ── 3. Earnings Calendar ───────────────────
+function renderEarningsCalendar(data) {
+  const el = document.getElementById('earnings-container');
+  if (!el) return;
+  const earnings = (data && data.earnings) || [];
+  if (!earnings.length) {
+    el.innerHTML = '<div class="loading-placeholder">No upcoming earnings dates found for your holdings.</div>';
+    return;
+  }
+
+  // Sort by date ascending
+  const sorted = [...earnings].sort((a, b) =>
+    new Date(a.date || 0) - new Date(b.date || 0)
+  );
+
+  let rows = '';
+  sorted.forEach(e => {
+    const sym = e.symbol || e.ticker || '';
+    const date = (e.date || '').slice(0, 10);
+    const time = (e.time || '').toLowerCase();
+    const timeLabel = /bmo|before.?market|am/.test(time) ? 'bmo' : /amc|after.?market|pm/.test(time) ? 'amc' : '';
+    const timeDisplay = timeLabel
+      ? `<span class="earnings-time-badge ${timeLabel}">${timeLabel.toUpperCase()}</span>`
+      : (e.time || '—');
+    const eps = e.epsEstimated != null ? '$' + Number(e.epsEstimated).toFixed(2) : (e.revenueEstimated != null ? '—' : '—');
+    const rev = e.revenueEstimated != null ? '$' + formatNum(e.revenueEstimated / 1e9) + 'B' : '—';
+    rows += `<tr>
+      <td class="ticker-col">${sym}</td>
+      <td>${date}</td>
+      <td>${timeDisplay}</td>
+      <td class="text-right">${eps}</td>
+      <td class="text-right">${rev}</td>
+    </tr>`;
+  });
+
+  el.innerHTML = `
+    <div class="earnings-table-wrap">
+      <table class="earnings-table" aria-label="Earnings calendar">
+        <thead><tr>
+          <th>Ticker</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th class="text-right">EPS Estimate</th>
+          <th class="text-right">Rev Estimate</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── 4. Market Movers ──────────────────────
+function renderMarketMovers(data) {
+  const el = document.getElementById('movers-container');
+  if (!el) return;
+  const gainers = (data && data.gainers) || [];
+  const losers = (data && data.losers) || [];
+  const active = (data && data.most_active) || (data && data.mostActive) || [];
+
+  if (!gainers.length && !losers.length && !active.length) {
+    el.innerHTML = '<div class="loading-placeholder">Market movers unavailable — markets may be closed.</div>';
+    return;
+  }
+
+  function buildList(items, cls) {
+    if (!items.length) return '<li class="movers-item"><span class="movers-name" style="color:var(--color-text-faint)">No data</span></li>';
+    return items.slice(0, 10).map(i => {
+      const pct = Number(i.changesPercentage || i.changePercentage || 0);
+      const sign = pct >= 0 ? '+' : '';
+      const changeDisplay = sign + pct.toFixed(2) + '%';
+      const name = (i.name || i.companyName || '').slice(0, 22);
+      return `<li class="movers-item">
+        <span class="movers-sym">${i.symbol || i.ticker || ''}</span>
+        <span class="movers-name">${name}</span>
+        <span class="movers-price">$${formatNum(i.price || 0)}</span>
+        <span class="movers-change ${cls}">${changeDisplay}</span>
+      </li>`;
+    }).join('');
+  }
+
+  el.innerHTML = `
+    <div class="movers-grid">
+      <div class="movers-column">
+        <div class="movers-column-header gainers">&#9650; Top Gainers</div>
+        <ul class="movers-list" aria-label="Top gainers">${buildList(gainers, 'up')}</ul>
+      </div>
+      <div class="movers-column">
+        <div class="movers-column-header losers">&#9660; Top Losers</div>
+        <ul class="movers-list" aria-label="Top losers">${buildList(losers, 'dn')}</ul>
+      </div>
+      <div class="movers-column">
+        <div class="movers-column-header active">&#9679; Most Active</div>
+        <ul class="movers-list" aria-label="Most active">${buildList(active, 'bl')}</ul>
+      </div>
+    </div>`;
+}
+
+// ── 5. Analyst Sentiment ──────────────────
+function renderSentiment(data) {
+  const el = document.getElementById('sentiment-container');
+  if (!el) return;
+  const sentiment = (data && data.sentiment) || {};
+  const tickers = Object.keys(sentiment);
+  if (!tickers.length) {
+    el.innerHTML = '<div class="loading-placeholder">No analyst sentiment data available.</div>';
+    return;
+  }
+
+  function actionClass(action) {
+    const a = (action || '').toLowerCase();
+    if (/upgrade/.test(a)) return 'upgrade';
+    if (/downgrade/.test(a)) return 'downgrade';
+    if (/reinit|reiterat|maintain/.test(a)) return 'reiterated';
+    if (/initiat/.test(a)) return 'initiated';
+    return 'maintained';
+  }
+
+  const cards = tickers.map(sym => {
+    const grades = (sentiment[sym].grades || sentiment[sym] || []).slice(0, 5);
+    const gradeRows = grades.map(g => {
+      const firm = (g.gradingCompany || g.firm || '').slice(0, 24);
+      const newGrade = g.newGrade || g.grade || '';
+      const action = g.action || g.ratingAction || '';
+      const ac = actionClass(action);
+      const gc = gradeClass(newGrade);
+      const date = (g.date || '').slice(0, 10);
+      return `<li class="sentiment-grade-item">
+        <span class="sentiment-firm">${firm}</span>
+        <span class="sentiment-action ${ac}">${action || 'update'}</span>
+        <span class="sentiment-grade-label ${gc}">${newGrade || '—'}</span>
+        <span class="sentiment-grade-date">${date}</span>
+      </li>`;
+    }).join('');
+    return `<div class="sentiment-card">
+      <div class="sentiment-card-header">${sym}</div>
+      <ul class="sentiment-grade-list" aria-label="${sym} analyst grades">${gradeRows || '<li class="sentiment-grade-item"><span class="sentiment-firm" style="color:var(--color-text-faint)">No grades available</span></li>'}</ul>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="sentiment-grid">${cards}</div>`;
+}
+
+// ── 6. Macro Dashboard ───────────────────
+function renderMacro(data) {
+  const yieldsEl = document.getElementById('macro-yields-container');
+  const eventsEl = document.getElementById('macro-events-container');
+
+  // Treasury Yields
+  if (yieldsEl) {
+    const rates = (data && data.treasury_rates) || [];
+    const latest = rates[0] || {};
+    const maturities = [
+      { key: 'year2',  label: '2Y' },
+      { key: 'year5',  label: '5Y' },
+      { key: 'year7',  label: '7Y' },
+      { key: 'year10', label: '10Y' },
+      { key: 'year20', label: '20Y' },
+      { key: 'year30', label: '30Y' },
+    ];
+    if (!rates.length) {
+      yieldsEl.innerHTML = '<div class="loading-placeholder" style="grid-column:1/-1">Yield data unavailable.</div>';
+    } else {
+      yieldsEl.innerHTML = maturities.map(m => {
+        const val = latest[m.key];
+        const display = val != null ? Number(val).toFixed(2) + '%' : '—';
+        return `<div class="macro-yield-card">
+          <div class="macro-yield-maturity">${m.label}</div>
+          <div class="macro-yield-value">${display}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Economic Calendar
+  if (eventsEl) {
+    const events = (data && data.economic_calendar) || [];
+    if (!events.length) {
+      eventsEl.innerHTML = '<div class="loading-placeholder">No upcoming economic events.</div>';
+    } else {
+      const items = events.slice(0, 12).map(ev => {
+        const impact = (ev.impact || '').toLowerCase();
+        const impBadge = impact ? `<span class="macro-impact-badge ${impact}">${impact}</span>` : '';
+        const date = (ev.date || '').slice(0, 10);
+        const forecast = ev.estimate != null ? String(ev.estimate) : '—';
+        const prev = ev.previous != null ? String(ev.previous) : '—';
+        return `<div class="macro-event-item">
+          <span class="macro-event-date">${date}</span>
+          ${impBadge}
+          <span class="macro-event-name">${(ev.event || ev.name || '').slice(0, 50)}</span>
+          <div class="macro-event-vals">
+            <div class="macro-event-val-item">
+              <div class="macro-event-val-label">Forecast</div>
+              <div class="macro-event-val-num">${forecast}</div>
+            </div>
+            <div class="macro-event-val-item">
+              <div class="macro-event-val-label">Previous</div>
+              <div class="macro-event-val-num">${prev}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      eventsEl.innerHTML = `<div class="macro-events-list">${items}</div>`;
+    }
+  }
+}
+
+// ── 7. Technical Indicators (RSI) ────────
+function renderTechnicals(data) {
+  const el = document.getElementById('technicals-container');
+  if (!el) return;
+  const rsi = (data && data.rsi) || {};
+  const tickers = Object.keys(rsi);
+  if (!tickers.length) {
+    el.innerHTML = '<div class="loading-placeholder">No RSI data available.</div>';
+    return;
+  }
+
+  const cards = tickers.map(sym => {
+    const r = rsi[sym] || {};
+    const val = r.value != null ? Number(r.value) : null;
+    const signal = r.signal || (val != null ? (val < 30 ? 'oversold' : val > 70 ? 'overbought' : 'neutral') : 'neutral');
+    const displayVal = val != null ? val.toFixed(1) : '—';
+    const barWidth = val != null ? Math.max(2, Math.min(100, val)) : 0;
+    const signalColor = signal === 'oversold' ? 'var(--color-green)' :
+      signal === 'overbought' ? 'var(--color-red)' : 'var(--color-text-muted)';
+    return `<div class="rsi-card">
+      <div class="rsi-ticker">${sym}</div>
+      <div class="rsi-value" style="color:${signalColor}">${displayVal}</div>
+      <div class="rsi-bar-track" role="progressbar" aria-valuenow="${val || 0}" aria-valuemin="0" aria-valuemax="100" aria-label="RSI value">
+        <div class="rsi-bar-fill ${signal}" style="width:${barWidth}%"></div>
+      </div>
+      <div class="rsi-bar-zones"><span>0</span><span>30</span><span>70</span><span>100</span></div>
+      <span class="rsi-signal ${signal}">${signal.charAt(0).toUpperCase() + signal.slice(1)}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="rsi-grid">${cards}</div>`;
+}
+
+// ── 8. Insider Transactions ───────────────
+function renderInsider(data) {
+  const el = document.getElementById('insider-container');
+  if (!el) return;
+  const insider = (data && data.insider) || {};
+  // Flatten all entries and sort by date desc
+  let allTx = [];
+  Object.entries(insider).forEach(([sym, txList]) => {
+    if (!Array.isArray(txList)) return;
+    txList.forEach(tx => allTx.push({ ...tx, _sym: sym }));
+  });
+
+  if (!allTx.length) {
+    el.innerHTML = '<div class="loading-placeholder">No recent insider transactions found.</div>';
+    return;
+  }
+
+  allTx.sort((a, b) =>
+    new Date(b.transactionDate || b.date || 0) - new Date(a.transactionDate || a.date || 0)
+  );
+
+  let rows = '';
+  allTx.slice(0, 30).forEach(tx => {
+    const sym = tx._sym || tx.symbol || '';
+    const name = (tx.reportingName || tx.insiderName || '').slice(0, 24);
+    const title = (tx.typeOfOwner || tx.title || '').slice(0, 20);
+    const type = tx.transactionType || tx.type || '';
+    const isBuy = /P-Purchase|purchase|buy/i.test(type);
+    const typeLbl = isBuy ? 'Buy' : /S-Sale|sale|sell/i.test(type) ? 'Sell' : type.slice(0, 8);
+    const shares = tx.securitiesTransacted != null ? formatNum(tx.securitiesTransacted) : '—';
+    const price = tx.price != null ? '$' + formatNum(tx.price) : '—';
+    const value = (tx.securitiesTransacted && tx.price)
+      ? '$' + formatNum(Math.round(tx.securitiesTransacted * tx.price))
+      : (tx.value ? '$' + formatNum(tx.value) : '—');
+    const date = (tx.transactionDate || tx.date || '').slice(0, 10);
+    rows += `<tr>
+      <td class="ticker-col">${sym}</td>
+      <td class="name-col">${name}</td>
+      <td class="title-col">${title}</td>
+      <td class="${isBuy ? 'insider-type-buy' : 'insider-type-sell'}">${typeLbl}</td>
+      <td class="text-right">${shares}</td>
+      <td class="text-right">${price}</td>
+      <td class="text-right">${value}</td>
+      <td style="color:var(--color-text-faint)">${date}</td>
+    </tr>`;
+  });
+
+  el.innerHTML = `
+    <div class="insider-table-wrap">
+      <table class="insider-table" aria-label="Insider transactions">
+        <thead><tr>
+          <th>Ticker</th>
+          <th>Insider</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th class="text-right">Shares</th>
+          <th class="text-right">Price</th>
+          <th class="text-right">Value</th>
+          <th>Date</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
 </script>
 
 </body>
