@@ -8,6 +8,7 @@ import os
 import datetime
 import urllib.request
 import urllib.parse
+import concurrent.futures
 from flask import Flask, send_from_directory, jsonify, request
 
 app = Flask(__name__, static_folder="static")
@@ -257,6 +258,113 @@ def api_news():
         "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
         "count": len(articles),
         "articles": articles,
+    }), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Polymarket ───────────────────────────────────────────
+# All parent event slugs from polymarket_data.json and polymarket_new.json
+DEFAULT_POLYMARKET_SLUGS = [
+    # Iran conflict
+    "us-x-iran-ceasefire-by",
+    "will-iran-close-the-strait-of-hormuz-by-2027",
+    "what-will-iran-strike-by-march-31",
+    "will-the-us-invade-iran-by-march-31",
+    "will-the-us-officially-declare-war-on-iran-by",
+    "us-iran-nuclear-deal-by-march-31",
+    "who-will-be-next-supreme-leader-of-iran-515",
+    "usisrael-strike-on-fordow-nuclear-facility-by-march-31",
+    "will-another-country-strike-iran-by-march-31",
+    "will-the-kharg-island-oil-terminal-be-hit-by-march-31",
+    # Fed / macro
+    "fed-decision-in-march-885",
+    "fed-decision-in-april",
+    "fed-decision-in-june-825",
+    "how-many-fed-rate-cuts-in-2026",
+    "what-will-the-fed-rate-be-at-the-end-of-2026",
+    "us-recession-by-end-of-2026",
+    "us-gdp-growth-in-q1-2026",
+    "february-inflation-us-annual",
+    "how-high-will-us-unemployment-go-in-2026",
+    "fed-emergency-rate-cut-before-2027",
+    "negative-gdp-growth-in-2026",
+    "which-banks-will-fail-by-june-30",
+    # Crypto / assets
+    "what-price-will-bitcoin-hit-in-march-2026",
+    "what-price-will-bitcoin-hit-before-2027",
+    "bitcoin-vs-gold-vs-sp-500-in-2026",
+    # Iran return
+    "will-reza-pahlavi-enter-iran-by-june-30",
+    # New slugs from polymarket_new.json
+    "which-companies-added-to-sp-500-in-q1-2026",
+    "what-price-will-nvda-hit-in-march-2026",
+    "how-much-will-coinbase-token-sales-raise-in-2026",
+    "coin-up-or-down-on-march-2-2026",
+    "iran-agrees-to-end-enrichment-of-uranium-by-march-31",
+    "iran-agrees-to-end-enrichment-of-uranium-by-june-30",
+    "us-grants-license-for-new-nuclear-reactor-in-2026",
+    "iran-nuclear-test-before-2027",
+    "ai-data-center-moratorium-passed-before-2027",
+    "will-bitcoin-outperform-gold-in-2026",
+    "sp-500-performance-in-q1",
+    "cl-settle-jun-2026",
+    "cl-hit-jun-2026",
+    "gc-settle-jun-2026",
+    "gc-over-under-jun-2026",
+    "si-settle-jun-2026",
+    "si-over-under-jun-2026",
+    "ndx-up-or-down-on-march-2-2026",
+    "djia-up-or-down-on-march-2-2026",
+]
+
+
+def _fetch_polymarket_slug(slug):
+    """Fetch a single event slug from Gamma API and return list of market dicts."""
+    url = f"https://gamma-api.polymarket.com/events?slug={urllib.parse.quote(slug)}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            events = json.loads(resp.read().decode())
+        markets = []
+        for event in (events if isinstance(events, list) else []):
+            for market in event.get("markets", []):
+                markets.append({
+                    "slug": market.get("slug", ""),
+                    "question": market.get("question", ""),
+                    "outcomePrices": market.get("outcomePrices", ""),
+                    "outcomes": market.get("outcomes", ""),
+                })
+        return slug, markets
+    except Exception as e:
+        return slug, {"error": str(e)}
+
+
+@app.route("/api/polymarket")
+def api_polymarket():
+    slugs_param = request.args.get("slugs", "")
+    if slugs_param:
+        slugs = [s.strip() for s in slugs_param.split(",") if s.strip()]
+    else:
+        slugs = DEFAULT_POLYMARKET_SLUGS
+
+    result = {}
+    # Process in batches of 10, max 10 workers
+    batch_size = 10
+    batches = [slugs[i:i+batch_size] for i in range(0, len(slugs), batch_size)]
+    for batch in batches:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(_fetch_polymarket_slug, slug): slug for slug in batch}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    slug, markets = future.result(timeout=15)
+                    result[slug] = markets
+                except Exception as e:
+                    slug = futures[future]
+                    result[slug] = {"error": str(e)}
+
+    return jsonify({
+        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "count": len(result),
+        "markets": result,
     }), 200, {"Cache-Control": "no-cache"}
 
 
