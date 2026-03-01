@@ -5294,30 +5294,25 @@ function renderAnalystTargets(data) {
   let rows = '';
   tickers.forEach(sym => {
     const t = targets[sym] || {};
-    const consensus = t.consensus || {};
-    const recs = consensus;
-    const grade = recs.analystRatingsGrade || '—';
-    const totalAnalysts = (recs.analystRatingsStrongBuy || 0) + (recs.analystRatingsBuy || 0) +
-      (recs.analystRatingsHold || 0) + (recs.analystRatingsSell || 0) + (recs.analystRatingsStrongSell || 0);
-    const buys = (recs.analystRatingsStrongBuy || 0) + (recs.analystRatingsBuy || 0);
-    const holds = recs.analystRatingsHold || 0;
-    const sells = (recs.analystRatingsSell || 0) + (recs.analystRatingsStrongSell || 0);
-    const gc = gradeClass(grade);
-    const gradeColor = gc === 'buy' ? 'var(--color-green)' : gc === 'sell' ? 'var(--color-red)' : 'var(--color-amber)';
-    const estEps = consensus.estimatedEpsAvg != null ? '$' + Number(consensus.estimatedEpsAvg).toFixed(2) : '—';
-    const estRev = consensus.estimatedRevenueAvg != null ? '$' + formatNum(consensus.estimatedRevenueAvg / 1e9) + 'B' : '—';
-    const date = (consensus.date || '').slice(0, 10);
+    const pt = t.price_target || {};
+    const estimates = (t.estimates || [])[0] || {};
+    // Price target data
+    const avgTarget = pt.lastQuarterAvgPriceTarget || pt.lastYearAvgPriceTarget || 0;
+    const analystCount = pt.lastYearCount || pt.allTimeCount || 0;
+    const recentCount = pt.lastQuarterCount || pt.lastMonthCount || 0;
+    // Estimates data
+    const estEps = estimates.epsAvg != null ? '$' + Number(estimates.epsAvg).toFixed(2) : '—';
+    const estRev = estimates.revenueAvg != null ? '$' + formatNum(estimates.revenueAvg / 1e9) + 'B' : '—';
+    const numAnalysts = estimates.numberAnalystsEstimatedEps || estimates.numberAnalystEstimatedRevenue || analystCount || 0;
+    const targetStr = avgTarget > 0 ? '$' + formatNum(avgTarget) : '—';
     rows += `<tr>
       <td class="ticker-col">${sym}</td>
       <td><span data-live-price="${sym}">—</span></td>
-      <td style="color:${gradeColor};font-weight:600">${grade || '—'}</td>
-      <td class="text-right">${totalAnalysts || '—'}</td>
-      <td class="text-right" style="color:var(--color-green)">${buys}</td>
-      <td class="text-right" style="color:var(--color-amber)">${holds}</td>
-      <td class="text-right" style="color:var(--color-red)">${sells}</td>
+      <td style="color:var(--color-amber);font-weight:600">${targetStr}</td>
+      <td class="text-right">${numAnalysts || '—'}</td>
+      <td class="text-right">${recentCount > 0 ? recentCount + ' recent' : '—'}</td>
       <td class="text-right">${estEps}</td>
       <td class="text-right">${estRev}</td>
-      <td style="color:var(--color-text-faint)">${date}</td>
     </tr>`;
   });
 
@@ -5326,15 +5321,12 @@ function renderAnalystTargets(data) {
       <table class="analyst-table" aria-label="Analyst price targets">
         <thead><tr>
           <th>Ticker</th>
-          <th>Current Price</th>
-          <th>Consensus Grade</th>
+          <th>Price</th>
+          <th>Avg Target</th>
           <th class="text-right"># Analysts</th>
-          <th class="text-right">Buys</th>
-          <th class="text-right">Holds</th>
-          <th class="text-right">Sells</th>
+          <th class="text-right">Recent</th>
           <th class="text-right">EPS Est.</th>
           <th class="text-right">Rev Est.</th>
-          <th>Date</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
