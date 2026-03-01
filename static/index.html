@@ -1394,57 +1394,57 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   <div class="container">
     <div class="section-header fade-in">
       <h2 class="section-title">Market Snapshot</h2>
-      <p class="section-subtitle">Friday close — pre-Iran escalation. Markets closed for the weekend.</p>
+      <p class="section-subtitle">Live data — click Refresh for latest prices.</p>
     </div>
 
     <div class="ticker-grid fade-in">
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-red)"></span>SPY</div>
-        <div class="ticker-price">$685.99</div>
-        <div class="ticker-change down">-0.48%</div>
+        <div class="ticker-price" data-live-price="SPY">$685.99</div>
+        <div class="ticker-change down" data-live-change="SPY">-0.48%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-red)"></span>QQQ</div>
-        <div class="ticker-price">$607.29</div>
-        <div class="ticker-change down">-0.32%</div>
+        <div class="ticker-price" data-live-price="QQQ">$607.29</div>
+        <div class="ticker-change down" data-live-change="QQQ">-0.63%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-red)"></span>DIA</div>
-        <div class="ticker-price">$489.66</div>
-        <div class="ticker-change down">-1.05%</div>
+        <div class="ticker-price" data-live-price="DIA">$489.66</div>
+        <div class="ticker-change down" data-live-change="DIA">-1.05%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-red)"></span>VIX</div>
-        <div class="ticker-price">19.86</div>
-        <div class="ticker-change down">+6.60%</div>
+        <div class="ticker-price" data-live-price="VIX">19.86</div>
+        <div class="ticker-change down" data-live-change="VIX">+6.60%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>GLD</div>
-        <div class="ticker-price">$483.75</div>
-        <div class="ticker-change up">+1.31%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>GLD <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
+        <div class="ticker-price" data-live-price="GLD">$483.75</div>
+        <div class="ticker-change up" data-live-change="GLD">+1.31%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>SLV</div>
-        <div class="ticker-price">$84.99</div>
-        <div class="ticker-change up">+5.64%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>SLV <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
+        <div class="ticker-price" data-live-price="SLV">$84.99</div>
+        <div class="ticker-change up" data-live-change="SLV">+5.64%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>USO</div>
-        <div class="ticker-price">$81.95</div>
-        <div class="ticker-change up">+2.73%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>USO <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
+        <div class="ticker-price" data-live-price="USO">$81.95</div>
+        <div class="ticker-change up" data-live-change="USO">+2.73%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-blue)"></span>BTC</div>
-        <div class="ticker-price">$67,035</div>
-        <div class="ticker-change up">+0.10%</div>
+        <div class="ticker-price" data-live-price="BTC">$66,296</div>
+        <div class="ticker-change down" data-live-change="BTC">-1.00%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-blue)"></span>ETH</div>
-        <div class="ticker-price">$2,005</div>
-        <div class="ticker-change up">+2.07%</div>
+        <div class="ticker-price" data-live-price="ETH">$1,974</div>
+        <div class="ticker-change up" data-live-change="ETH">+0.46%</div>
       </div>
     </div>
-    <p class="ticker-note fade-in">Friday close — pre-Iran escalation. Brent crude now ~$80 in off-market trading (+10%). Gold and equity futures expected to gap significantly at Monday open.</p>
+    <p class="ticker-note fade-in">GLD, SLV, and USO are ETFs tracking gold, silver, and crude oil respectively — not spot commodity prices. BTC and ETH update 24/7. Stock prices update during market hours (Mon–Fri 9:30 AM – 4:00 PM ET).</p>
   </div>
 </section>
 
@@ -3891,8 +3891,13 @@ function applyQuotes(quotes) {
     const pct = q.changesPercentage || 0;
     const sign = pct >= 0 ? '+' : '';
     el.textContent = sign + pct.toFixed(2) + '%';
-    el.className = el.className.replace(/text-(red|green)/g, '').trim();
-    el.classList.add(pct >= 0 ? 'text-green' : 'text-red');
+    // Handle both buy-list cards (text-red/text-green) and snapshot ticker cards (up/down)
+    el.className = el.className.replace(/text-(red|green)/g, '').replace(/\b(up|down)\b/g, '').trim();
+    if (el.classList.contains('ticker-change')) {
+      el.classList.add(pct >= 0 ? 'up' : 'down');
+    } else {
+      el.classList.add(pct >= 0 ? 'text-green' : 'text-red');
+    }
   });
 
   // Update portfolio holdings table

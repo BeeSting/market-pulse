@@ -27,8 +27,11 @@ PORTFOLIO_TICKERS = [
 WATCHLIST_TICKERS = [
     "USO","XLE","OXY","CVX","LMT","RTX","GD","NOC","ITA",
     "GLD","GDX","GDXJ","WPM","NEM","AMZN","MSFT","META",
-    "AAPL","CRM","UVXY","VXX","SQQQ"
+    "AAPL","CRM","UVXY","VXX","SQQQ",
+    "SPY","QQQ","DIA","VIXY"
 ]
+
+CRYPTO_SYMBOLS = ["BTCUSD", "ETHUSD"]
 
 ALL_TICKERS = list(dict.fromkeys(PORTFOLIO_TICKERS + WATCHLIST_TICKERS))
 
@@ -98,6 +101,57 @@ def fetch_fmp(tickers):
     return quotes
 
 
+def fetch_crypto():
+    """Fetch crypto quotes from FMP (BTC, ETH trade 24/7)."""
+    syms = ",".join(CRYPTO_SYMBOLS)
+    url = f"https://financialmodelingprep.com/stable/batch-quote?symbols={syms}&apikey={FMP_KEY}"
+    req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        raw = json.loads(resp.read().decode())
+    quotes = {}
+    for q in (raw if isinstance(raw, list) else []):
+        sym = q.get("symbol", "")
+        # Map BTCUSD -> BTC, ETHUSD -> ETH for frontend
+        display = sym.replace("USD", "")
+        quotes[display] = {
+            "symbol": display,
+            "name": q.get("name", ""),
+            "price": q.get("price", 0),
+            "change": q.get("change", 0),
+            "changesPercentage": q.get("changePercentage", 0),
+            "previousClose": q.get("previousClose", 0),
+            "open": q.get("open", 0),
+            "dayHigh": q.get("dayHigh", 0),
+            "dayLow": q.get("dayLow", 0),
+            "volume": q.get("volume", 0),
+            "timestamp": q.get("timestamp", 0),
+        }
+    return quotes
+
+
+def fetch_vix():
+    """Fetch VIX index from FMP (Polygon doesn't carry ^VIX)."""
+    url = f"https://financialmodelingprep.com/stable/batch-quote?symbols=%5EVIX&apikey={FMP_KEY}"
+    req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        raw = json.loads(resp.read().decode())
+    quotes = {}
+    for q in (raw if isinstance(raw, list) else []):
+        quotes["VIX"] = {
+            "symbol": "VIX",
+            "name": "CBOE Volatility Index",
+            "price": q.get("price", 0),
+            "change": q.get("change", 0),
+            "changesPercentage": q.get("changePercentage", 0),
+            "previousClose": q.get("previousClose", 0),
+            "open": q.get("open", 0),
+            "dayHigh": q.get("dayHigh", 0),
+            "dayLow": q.get("dayLow", 0),
+            "timestamp": q.get("timestamp", 0),
+        }
+    return quotes
+
+
 # ── API Routes ────────────────────────────────────────────
 @app.route("/api/quotes")
 def api_quotes():
@@ -108,11 +162,20 @@ def api_quotes():
     try:
         quotes = fetch_polygon(tickers)
     except Exception:
-        source = "live"
         try:
             quotes = fetch_fmp(tickers)
         except Exception as e:
             return jsonify({"error": str(e)}), 502
+
+    # Enrich with crypto (BTC, ETH) and VIX — these need separate endpoints
+    try:
+        quotes.update(fetch_crypto())
+    except Exception:
+        pass  # non-fatal: stock data still available
+    try:
+        quotes.update(fetch_vix())
+    except Exception:
+        pass
 
     return jsonify({
         "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
