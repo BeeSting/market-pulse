@@ -1256,6 +1256,183 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   color: var(--color-text-faint);
   margin-right: var(--space-1);
 }
+
+/* ── Executive Summary ─────────────────────── */
+.exec-summary {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-6) var(--space-6);
+  margin-bottom: var(--space-6);
+  line-height: 1.7;
+}
+.exec-summary h3 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+.exec-summary p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+.exec-summary p:last-child { margin-bottom: 0; }
+.exec-summary strong { color: var(--color-text); }
+.exec-summary .summary-highlight {
+  display: inline;
+  color: var(--color-amber, #f59e0b);
+  font-weight: 600;
+}
+.exec-summary .summary-red {
+  display: inline;
+  color: var(--color-red, #ef4444);
+  font-weight: 600;
+}
+.exec-summary .summary-green {
+  display: inline;
+  color: var(--color-green, #22c55e);
+  font-weight: 600;
+}
+
+/* ── Iran Developments Section ────────────── */
+.iran-news-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 640px) {
+  .iran-news-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.iran-news-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-5);
+  transition: border-color 0.18s ease;
+}
+.iran-news-card:hover { border-color: var(--color-border-strong); }
+.iran-news-card.card-critical { border-left: 3px solid #ef4444; }
+.iran-news-card.card-warning { border-left: 3px solid #f59e0b; }
+.iran-news-card.card-market { border-left: 3px solid #3b82f6; }
+.iran-news-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: var(--space-2);
+}
+.iran-news-badge.critical { background: rgba(239,68,68,0.15); color: #ef4444; }
+.iran-news-badge.warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.iran-news-badge.market { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.iran-news-badge.info { background: var(--color-surface-3); color: var(--color-text-faint); }
+.iran-news-card h4 {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+  line-height: 1.4;
+}
+.iran-news-card p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-2);
+}
+.iran-news-source {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+.iran-news-source a { color: var(--color-text-faint); text-decoration: underline; }
+.iran-news-source a:hover { color: var(--color-text); }
+
+/* ── Social Sentiment Section ─────────────── */
+.social-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 640px) {
+  .social-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .social-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.social-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.18s ease;
+}
+.social-card:hover { border-color: var(--color-border-strong); }
+.social-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  flex-wrap: wrap;
+}
+.social-platform {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.social-platform.x { background: rgba(29,161,242,0.15); color: #1da1f2; }
+.social-platform.reddit { background: rgba(255,69,0,0.15); color: #ff4500; }
+.social-platform.stocktwits { background: rgba(0,200,5,0.12); color: #00c805; }
+.social-ticker {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.social-engagement {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  margin-left: auto;
+}
+.social-author {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-2);
+}
+.social-body {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: var(--space-3);
+}
+.social-sentiment {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: var(--space-2);
+  width: fit-content;
+}
+.social-sentiment.bullish { background: rgba(34,197,94,0.15); color: #22c55e; }
+.social-sentiment.bearish { background: rgba(239,68,68,0.15); color: #ef4444; }
+.social-sentiment.mixed { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.social-link {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  text-decoration: none;
+  margin-top: auto;
+}
+.social-link:hover { color: var(--color-text); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -1280,6 +1457,8 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
       <li><a href="#tariffs">Tariffs</a></li>
       <li><a href="#ipo">IPO</a></li>
       <li><a href="#takeaways">Takeaways</a></li>
+      <li><a href="#iran-news">Iran News</a></li>
+      <li><a href="#social">Social</a></li>
       <li><a href="#portfolio" class="nav-portfolio-link">Portfolio</a></li>
       <li><a href="#buylist">Buy List</a></li>
     </ul>
@@ -1312,6 +1491,8 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
   <a href="#tariffs" onclick="document.getElementById('mobile-menu').classList.remove('open')">Trade & Tariffs</a>
   <a href="#ipo" onclick="document.getElementById('mobile-menu').classList.remove('open')">IPO Watch</a>
   <a href="#takeaways" onclick="document.getElementById('mobile-menu').classList.remove('open')">Key Takeaways</a>
+  <a href="#iran-news" onclick="document.getElementById('mobile-menu').classList.remove('open')">Iran Developments</a>
+  <a href="#social" onclick="document.getElementById('mobile-menu').classList.remove('open')">Social Sentiment</a>
   <a href="#portfolio" class="mobile-portfolio-link" onclick="document.getElementById('mobile-menu').classList.remove('open')">Portfolio</a>
   <a href="#buylist" onclick="document.getElementById('mobile-menu').classList.remove('open')">Buy List</a>
 </div>
@@ -1388,6 +1569,22 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
 </section>
 
 <!-- ==========================================
+     EXECUTIVE SUMMARY
+     ========================================== -->
+<section id="summary" style="padding-top:0;">
+  <div class="container">
+    <div class="exec-summary fade-in">
+      <h3>Dashboard Summary &mdash; March 1, 2026</h3>
+      <p>The United States and Israel launched joint strikes on Iran on February 28, <span class="summary-red">killing Supreme Leader Ayatollah Ali Khamenei</span> and 40+ senior regime officials in what is now an active two-day war. Iran is retaliating with missiles and drones targeting US bases across Qatar, Kuwait, UAE, Bahrain, Saudi Arabia, and Jordan, as well as striking Israel directly. <strong>Three US troops have been killed and five seriously wounded</strong> — the first American casualties. The IRGC has vowed the "most ferocious offensive in history," while a fatwa for jihad against the US and Israel has been issued. Explosions have been reported in Dubai, Doha, and Riyadh, with a drone striking near the Burj Al Arab and debris igniting fires at Jebel Ali Port. Iran's internet is 99% blacked out. A senior White House official says Iran's new potential leadership appears "open to talks," but on the ground, escalation continues.</p>
+
+      <p><strong>Markets are pricing maximum fear.</strong> <span class="summary-highlight">Gold has blasted past $5,247/oz</span> (+2.78%) in the biggest single-session safe-haven rally in modern history, with analysts now targeting $5,500–$6,000 if hostilities intensify. <span class="summary-highlight">Silver surged to $93.29/oz</span> (+7.82%), its 10th consecutive monthly gain — the longest streak ever. Brent crude sits at $72.87/bbl (+2.86%) with WTI at $67.02 as the Strait of Hormuz disruption (70% probability per Polymarket) threatens to remove 20% of global oil supply. BTC has pulled back to $66,296 (-1.00%) as crypto acts as a risk asset, not a safe haven. The S&P 500 has an <span class="summary-red">84% probability of opening down Monday</span>, Nasdaq 73% down, with VIX at 19.86 and rising. Polymarket gives a 74% probability of US-Iran ceasefire by April, but a 93% chance Iran strikes Gulf oil facilities this month.</p>
+
+      <p><strong>Your $1.86M portfolio</strong> is positioned with heavy precious metals exposure (29%, $537K across SLV and IAU) and crypto/mining (36%, $674K) — making it a <span class="summary-green">net beneficiary of the gold/silver safe-haven rally</span> but vulnerable to the Monday equity selloff. <strong>Key holding signals:</strong> RKLB is being treated as a defense play on social media, with Reddit users noting it rallied 20–25% after the Venezuela strike in January. IREN drew a $126M institutional buy from Cantor Fitzgerald (Howard Lutnick), with Stocktwits sentiment at "Extremely Bullish" despite a 7.4% Friday dip. WULF secured $12.8B in long-term contracts and is the chart leader among data center stocks. SOFI's earnings beat was followed by forced selling, but Reddit consensus expects $30–33 by April. The portfolio's biggest gap remains <span class="summary-red">zero direct oil exposure</span> — with Brent potentially headed to $92–$100, consider USO, XLE, or OXY at Monday's open. Defense names (LMT, RTX, ITA) are also recommended as the conflict drives spending narratives. The sell-off buy list below identifies 16 opportunities across energy, defense, precious metals, quality tech, and tail-risk hedges.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
      MARKET SNAPSHOT
      ========================================== -->
 <section id="snapshot">
@@ -1419,19 +1616,24 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
         <div class="ticker-change down" data-live-change="VIX">+6.60%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>GLD <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
-        <div class="ticker-price" data-live-price="GLD">$483.75</div>
-        <div class="ticker-change up" data-live-change="GLD">+1.31%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>GOLD <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">/oz</span></div>
+        <div class="ticker-price" data-live-price="GOLD">$5,247.90</div>
+        <div class="ticker-change up" data-live-change="GOLD">+2.78%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>SLV <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
-        <div class="ticker-price" data-live-price="SLV">$84.99</div>
-        <div class="ticker-change up" data-live-change="SLV">+5.64%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>SILVER <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">/oz</span></div>
+        <div class="ticker-price" data-live-price="SILVER">$93.29</div>
+        <div class="ticker-change up" data-live-change="SILVER">+7.82%</div>
       </div>
       <div class="ticker-card">
-        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>USO <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">(ETF)</span></div>
-        <div class="ticker-price" data-live-price="USO">$81.95</div>
-        <div class="ticker-change up" data-live-change="USO">+2.73%</div>
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>WTI <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">/bbl</span></div>
+        <div class="ticker-price" data-live-price="WTI">$67.02</div>
+        <div class="ticker-change up" data-live-change="WTI">+2.77%</div>
+      </div>
+      <div class="ticker-card">
+        <div class="ticker-symbol"><span class="dot" style="background:var(--color-amber)"></span>BRENT <span style="font-size:10px;color:var(--color-text-faint);font-weight:400">/bbl</span></div>
+        <div class="ticker-price" data-live-price="BRENT">$72.87</div>
+        <div class="ticker-change up" data-live-change="BRENT">+2.86%</div>
       </div>
       <div class="ticker-card">
         <div class="ticker-symbol"><span class="dot" style="background:var(--color-blue)"></span>BTC</div>
@@ -1444,7 +1646,7 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
         <div class="ticker-change up" data-live-change="ETH">+0.46%</div>
       </div>
     </div>
-    <p class="ticker-note fade-in">GLD, SLV, and USO are ETFs tracking gold, silver, and crude oil respectively — not spot commodity prices. BTC and ETH update 24/7. Stock prices update during market hours (Mon–Fri 9:30 AM – 4:00 PM ET).</p>
+    <p class="ticker-note fade-in">Gold, Silver, WTI, and Brent show live spot commodity prices (per ounce / per barrel). BTC and ETH update 24/7. Stock prices update during market hours (Mon–Fri 9:30 AM – 4:00 PM ET).</p>
   </div>
 </section>
 
@@ -2393,6 +2595,234 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
           <p>SpaceX is 82% likely to be the largest IPO of 2026. 55% probability of a June listing. 90% chance market cap exceeds $1 trillion at IPO.</p>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     IRAN DEVELOPMENTS
+     ========================================== -->
+<section id="iran-news">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Iran Conflict Developments</h2>
+      <p class="section-subtitle">Live updates on the US-Israeli war on Iran — Day 2 (March 1, 2026). Sources: CNBC, CBS, PBS, NPR, CNN.</p>
+    </div>
+
+    <div class="iran-news-grid fade-in">
+
+      <div class="iran-news-card card-critical">
+        <div class="iran-news-badge critical">BREAKING</div>
+        <h4>3 US Troops Killed, 5 Seriously Wounded</h4>
+        <p>The Pentagon confirmed the first American casualties from Iranian retaliatory strikes on US bases across the Middle East. Several additional personnel sustained minor injuries and concussions.</p>
+        <div class="iran-news-source"><a href="https://www.cbsnews.com/live-updates/us-iran-war-israel-supreme-leader-khamenei-funeral-day-2/" target="_blank" rel="noopener">CBS News</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card card-critical">
+        <div class="iran-news-badge critical">ESCALATION</div>
+        <h4>Iran Retaliating Across Gulf: Dubai, Doha, Riyadh Under Fire</h4>
+        <p>Iran launched missiles and drones at Israel and Gulf Arab states including UAE, Qatar, Bahrain, Saudi Arabia, Kuwait, and Jordan. A drone struck near the Burj Al Arab in Dubai. Debris ignited fires at Jebel Ali Port. Kuwait airport hit. At least 4 civilians killed across Gulf states.</p>
+        <div class="iran-news-source"><a href="https://www.cnbc.com/2026/03/01/us-iran-live-updates-khamenei-death-trump-gulf-strikes.html" target="_blank" rel="noopener">CNBC</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card card-warning">
+        <div class="iran-news-badge warning">MILITARY</div>
+        <h4>Israel Strikes "Heart of Tehran" for First Time</h4>
+        <p>The IDF launched a broad wave of strikes on targets in central Tehran after achieving air superiority. B-2 stealth bombers targeted Iran's ballistic missile facilities with 2,000-pound bombs. Trump says 9 Iranian naval vessels destroyed and sunk; Iranian navy command center "largely annihilated."</p>
+        <div class="iran-news-source"><a href="https://www.cbsnews.com/live-updates/us-iran-war-israel-supreme-leader-khamenei-funeral-day-2/" target="_blank" rel="noopener">CBS News</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card card-warning">
+        <div class="iran-news-badge warning">THREAT</div>
+        <h4>IRGC Vows "Most Ferocious Offensive in History"</h4>
+        <p>Iran's Revolutionary Guard promised the "most ferocious offensive operation in the history of the Iranian armed forces" targeting US bases and Israel. Parliamentary speaker Qalibaf: "You have crossed our red line and must pay the price." Grand Ayatollah issued fatwa for jihad against US and Israel.</p>
+        <div class="iran-news-source"><a href="https://www.pbs.org/newshour/world/iran-vows-revenge-after-the-killing-of-its-supreme-leader-and-trades-strikes-with-israel-in-widening-war" target="_blank" rel="noopener">PBS</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card">
+        <div class="iran-news-badge info">POLITICAL</div>
+        <h4>Interim Leadership Council Formed, Khamenei Funeral Held</h4>
+        <p>President Pezeshkian announced an interim governing council. Foreign Minister Araghchi said a new supreme leader would be appointed within "one or two days." Funeral held in Tehran amid mixed reactions — celebrations on rooftops in some cities, but Basij paramilitary checkpoints deployed throughout.</p>
+        <div class="iran-news-source"><a href="https://www.npr.org/2026/02/28/1123499337/iran-israel-ayatollah-ali-khamenei-killed" target="_blank" rel="noopener">NPR</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card">
+        <div class="iran-news-badge info">DIPLOMACY</div>
+        <h4>White House: "New Potential Leadership" Open to Talks</h4>
+        <p>A senior White House official said Iran's new potential leadership appears open to discussions with the US. Trump warned: "IF THEY [RETALIATE], WE WILL HIT THEM WITH A FORCE THAT HAS NEVER BEEN SEEN BEFORE!" Sen. Cotton described an "extended air and naval campaign" targeting Iran's missile arsenal.</p>
+        <div class="iran-news-source"><a href="https://www.cnbc.com/2026/03/01/us-iran-live-updates-khamenei-death-trump-gulf-strikes.html" target="_blank" rel="noopener">CNBC</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card card-market">
+        <div class="iran-news-badge market">MARKETS</div>
+        <h4>Gold Blasts Past $5,300 — Historic Safe-Haven Rally</h4>
+        <p>Gold surged from ~$5,100 to $5,247/oz in the biggest single-session safe-haven rally in modern history. Silver jumped ~8%. Analysts now targeting $5,500–$6,000 gold if hostilities escalate. Goldman Sachs base case: $4,900/oz (set before latest strikes). Brent crude at $72.87/bbl (+2.86%).</p>
+        <div class="iran-news-source"><a href="https://intellectia.ai/blog/us-iran-war-affect-gold-price-2026-analysis" target="_blank" rel="noopener">Intellectia</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card card-market">
+        <div class="iran-news-badge market">OIL RISK</div>
+        <h4>Strait of Hormuz Disruption Fears Intensify</h4>
+        <p>Iran's attacks on Gulf shipping infrastructure and civilian airports raise fears of Strait of Hormuz closure — ~20% of global oil trade passes through. If sustained, oil analysts forecast $92–$100. Flight operations disrupted across the Middle East. Air defense fire echoing over Dubai.</p>
+        <div class="iran-news-source"><a href="https://www.pbs.org/newshour/world/iran-vows-revenge-after-the-killing-of-its-supreme-leader-and-trades-strikes-with-israel-in-widening-war" target="_blank" rel="noopener">PBS</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card">
+        <div class="iran-news-badge info">CIVILIAN</div>
+        <h4>200+ Killed in Iran; School Hit in Southern Iran</h4>
+        <p>Iranian state media reports at least 200 killed since strikes began. A girls' school in southern Iran reportedly hit, killing at least 165. IDF says "not aware of strikes there." CENTCOM says it is investigating reports of civilian harm. Near-total internet blackout across Iran (4% connectivity).</p>
+        <div class="iran-news-source"><a href="https://www.pbs.org/newshour/world/iran-vows-revenge-after-the-killing-of-its-supreme-leader-and-trades-strikes-with-israel-in-widening-war" target="_blank" rel="noopener">PBS</a> &middot; Mar 1, 2026</div>
+      </div>
+
+      <div class="iran-news-card">
+        <div class="iran-news-badge info">GLOBAL</div>
+        <h4>Regional Unrest Spreading: Karachi US Consulate Stormed</h4>
+        <p>Hundreds stormed the US Consulate in Karachi, Pakistan. Police used batons and tear gas, at least 9 killed in confrontations. Fear of broader regional instability growing as the conflict widens beyond Iran's borders.</p>
+        <div class="iran-news-source"><a href="https://www.pbs.org/newshour/world/iran-vows-revenge-after-the-killing-of-its-supreme-leader-and-trades-strikes-with-israel-in-widening-war" target="_blank" rel="noopener">PBS</a> &middot; Mar 1, 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SOCIAL SENTIMENT
+     ========================================== -->
+<section id="social">
+  <div class="container">
+    <div class="section-header fade-in">
+      <h2 class="section-title">Social Sentiment</h2>
+      <p class="section-subtitle">High-engagement posts from X, Reddit, and Stocktwits on your top 10 holdings and key themes.</p>
+    </div>
+
+    <div class="social-grid fade-in">
+
+      <!-- RKLB -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform x">X</span>
+          <span class="social-ticker">$RKLB</span>
+          <span class="social-engagement">12K views &middot; 177 likes</span>
+        </div>
+        <div class="social-author">@BrettKrieger12</div>
+        <p class="social-body">Rocket Lab Q4 earnings beat — strong revenue, narrowing losses, record launch backlog of $1.1B. Neutron delayed to Q1 2026 but CEO Beck says they won't rush it. Defense contracts (Golden Dome, SDA) positioning RKLB as a defense play. Generational company with a huge moat.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://x.com/BrettKrieger12" target="_blank" rel="noopener" class="social-link">View on X</a>
+      </div>
+
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">$RKLB</span>
+          <span class="social-engagement">r/RKLB Daily Thread</span>
+        </div>
+        <div class="social-author">Multiple users &middot; Mar 1, 2026</div>
+        <p class="social-body">"This is clearly a defence stock — the War Man toured our plant. Price should climb on Monday." Active discussion on RKLB as a defense play benefiting from Iran conflict. After Trump's Venezuela strike in Jan, RKLB rallied 20–25% in two weeks. Iran strike seen as even bigger catalyst.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://www.reddit.com/r/RKLB/comments/1rhukvr/march_01_2026_daily_discussion_thread/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
+      <!-- IREN / CIFR -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform x">X</span>
+          <span class="social-ticker">$IREN $CIFR</span>
+          <span class="social-engagement">4.6K views &middot; 12 likes</span>
+        </div>
+        <div class="social-author">@SingularityRes (14K followers)</div>
+        <p class="social-body">"How can you be short any bitcoin mining company pivoting to AI data center like $IREN $CIFR $HUT" — Quoted thread on AI bottlenecks from CEOs of NVDA, INTC, AMD, MSFT, META, AMZN, GOOGL, ORCL. Power and data center capacity is the #1 constraint. 149K views on parent post.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://x.com/SingularityRes/status/2026835764508795134" target="_blank" rel="noopener" class="social-link">View on X</a>
+      </div>
+
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">$IREN $WULF $CIFR</span>
+          <span class="social-engagement">r/irenstocks</span>
+        </div>
+        <div class="social-author">Multiple users &middot; Feb 26, 2026</div>
+        <p class="social-body">Heated debate on data center stocks. Bears: "No deals announced in 5 months, management just talk." Bulls: "IREN is in ideal position — Microsoft contract filling Q4, will explode. 5x from here in 2 years." Chart watchers: WULF is the current leader, IREN somewhat bullish.</p>
+        <div class="social-sentiment mixed">Mixed</div>
+        <a href="https://www.reddit.com/r/irenstocks/comments/1rfovtx/data_center_stocks_are_dead/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform stocktwits">Stocktwits</span>
+          <span class="social-ticker">$IREN</span>
+          <span class="social-engagement">Extremely High Volume</span>
+        </div>
+        <div class="social-author">Stocktwits Trending &middot; Feb 28, 2026</div>
+        <p class="social-body">IREN down 7.4% on Friday. Cantor Fitzgerald (Howard Lutnick) bought $126M in IREN shares — major institutional vote of confidence. Q2 net loss of $155.4M but management says "strongest demand environment to date." Retail sentiment: Extremely Bullish despite the dip. Stock gained 371% in 2025.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://stocktwits.com/symbol/IREN" target="_blank" rel="noopener" class="social-link">View on Stocktwits</a>
+      </div>
+
+      <!-- WULF -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform x">X</span>
+          <span class="social-ticker">$WULF</span>
+          <span class="social-engagement">15K views</span>
+        </div>
+        <div class="social-author">@BoldStocksBabe</div>
+        <p class="social-body">"$WULF is the current chart leader among data center/mining stocks." Rosenblatt raised price target. WULF secured $12.8B in long-term contracts for 522 critical IT MW. Retail buzz quadrupled after Trump's AI energy pledge. Sentiment shifted from bearish to bullish.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://stocktwits.com/symbol/WULF" target="_blank" rel="noopener" class="social-link">View on Stocktwits</a>
+      </div>
+
+      <!-- SOFI -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">$SOFI</span>
+          <span class="social-engagement">39 upvotes &middot; 80 comments</span>
+        </div>
+        <div class="social-author">r/stocks &middot; Jan 30, 2026</div>
+        <p class="social-body">Earnings beat but stock dropped on forced selling below 50-day MA. Top comment: "Buy dips and hold long term. It'll be $30–33 by April." Others point to Trump's Fed chair nominee + 10% rate cap as potential SOFI tailwind. Max pain at $26 suggests options-driven manipulation.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://www.reddit.com/r/stocks/comments/1qr8smf/help_me_understand_sofis_price_action/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
+      <!-- TMDX -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">$TMDX</span>
+          <span class="social-engagement">r/ValueInvesting</span>
+        </div>
+        <div class="social-author">Multiple users</div>
+        <p class="social-body">"30%+ growth from non-AI." Valued at $5B, $500M revenue, 30%+ YoY growth. Insulated from AI volatility. Holds ~20% organ transplant market share. Bull case: kidney expansion (90% of waitlist) + international markets. Bear case: trading near ATH, SBC consuming all FCF, low insider ownership.</p>
+        <div class="social-sentiment mixed">Mixed</div>
+        <a href="https://www.reddit.com/r/ValueInvesting/comments/1p9970i/tmdx_30_growth_from_non_ai/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
+      <!-- APLD -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">$APLD</span>
+          <span class="social-engagement">6 upvotes &middot; 45 comments</span>
+        </div>
+        <div class="social-author">r/ValueInvesting</div>
+        <p class="social-body">"Extremely undervalued due to high growth potential." Authorized to build much larger facilities with solid order backlog. Bears warn about terrible MAM financing (17% effective rate) and massive dilution (150M to 280M shares in one year). Mixed views but growth bulls dominate.</p>
+        <div class="social-sentiment mixed">Mixed</div>
+        <a href="https://www.reddit.com/r/ValueInvesting/comments/1peks7m/is_apld_a_buy/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
+      <!-- Silver / Gold -->
+      <div class="social-card">
+        <div class="social-header">
+          <span class="social-platform reddit">Reddit</span>
+          <span class="social-ticker">Silver &middot; Gold</span>
+          <span class="social-engagement">87 upvotes &middot; Top Post</span>
+        </div>
+        <div class="social-author">r/investing &middot; Jan 19, 2026</div>
+        <p class="social-body">Silver outperforming gold: +30% YTD vs gold's +20%. 10th consecutive monthly gain — longest streak in history. Silver Institute predicts 67M oz deficit (6th straight year). Citi/JPMorgan targeting $5,000 gold and $100 silver. SILJ mining stocks lagging at 30% vs historical 80% ratio — seen as massive opportunity.</p>
+        <div class="social-sentiment bullish">Bullish</div>
+        <a href="https://www.reddit.com/r/investing/comments/1qhejt3/gold_silver_still_safe_havens_or_already/" target="_blank" rel="noopener" class="social-link">View on Reddit</a>
+      </div>
+
     </div>
   </div>
 </section>

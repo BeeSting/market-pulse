@@ -152,6 +152,42 @@ def fetch_vix():
     return quotes
 
 
+# Commodity symbol mapping: FMP symbol -> display name
+COMMODITY_MAP = {
+    "GCUSD": {"display": "GOLD",  "name": "Gold (Spot)",        "unit": "/oz"},
+    "SILUSD": {"display": "SILVER", "name": "Silver (Spot)",      "unit": "/oz"},
+    "CLUSD": {"display": "WTI",   "name": "WTI Crude Oil",      "unit": "/bbl"},
+    "BZUSD": {"display": "BRENT", "name": "Brent Crude Oil",    "unit": "/bbl"},
+}
+
+def fetch_commodities():
+    """Fetch spot commodity prices from FMP batch-commodity-quotes."""
+    url = f"https://financialmodelingprep.com/stable/batch-commodity-quotes?apikey={FMP_KEY}"
+    req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        raw = json.loads(resp.read().decode())
+    quotes = {}
+    for q in (raw if isinstance(raw, list) else []):
+        sym = q.get("symbol", "")
+        if sym in COMMODITY_MAP:
+            info = COMMODITY_MAP[sym]
+            prev = q.get("previousClose", 0) or 0
+            price = q.get("price", 0) or 0
+            chg = q.get("change", 0) or 0
+            chg_pct = round((chg / prev * 100) if prev else 0, 2)
+            quotes[info["display"]] = {
+                "symbol": info["display"],
+                "name": info["name"],
+                "unit": info["unit"],
+                "price": price,
+                "change": round(chg, 2),
+                "changesPercentage": chg_pct,
+                "previousClose": prev,
+                "timestamp": q.get("timestamp", 0),
+            }
+    return quotes
+
+
 # ── API Routes ────────────────────────────────────────────
 @app.route("/api/quotes")
 def api_quotes():
@@ -167,13 +203,17 @@ def api_quotes():
         except Exception as e:
             return jsonify({"error": str(e)}), 502
 
-    # Enrich with crypto (BTC, ETH) and VIX — these need separate endpoints
+    # Enrich with crypto (BTC, ETH), VIX, and spot commodity prices
     try:
         quotes.update(fetch_crypto())
     except Exception:
         pass  # non-fatal: stock data still available
     try:
         quotes.update(fetch_vix())
+    except Exception:
+        pass
+    try:
+        quotes.update(fetch_commodities())
     except Exception:
         pass
 
