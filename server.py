@@ -27,6 +27,7 @@ POLYGON_KEY = os.environ.get("POLYGON_KEY", "SL1wF6nbcCYCWRbfl5TcepWwd5pwPAbW")
 FMP_KEY = os.environ.get("FMP_KEY", "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "22b226153fmsh05ce406581ceab8p1586d8jsn6de44ca4671f")
 UW_KEY = os.environ.get("UNUSUAL_WHALES_API_KEY", "cc97a47e-9c8d-4fdb-a2b8-be4eeba08045")
+MASSIVE_KEY = os.environ.get("MASSIVE_KEY", "8DLmlXSQ8eaVqjUtNPskYcbLhLasNv1I")
 
 # ── Tickers ───────────────────────────────────────────────
 PORTFOLIO_TICKERS = [
@@ -103,7 +104,7 @@ FALLBACK_INSIDER = {
 # ── Quote Fetchers ────────────────────────────────────────
 def fetch_polygon(tickers):
     syms = ",".join(tickers)
-    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={syms}&apiKey={POLYGON_KEY}"
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={syms}&apiKey={MASSIVE_KEY}"
     req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
     with urllib.request.urlopen(req, timeout=20) as resp:
         data = json.loads(resp.read().decode())
@@ -295,7 +296,7 @@ def api_news():
     limit = min(int(request.args.get("limit", "15")), 30)
 
     ticker_filter = tickers_param if tickers_param else ",".join(ALL_TICKERS)
-    url = f"https://api.polygon.io/v2/reference/news?ticker.any_of={ticker_filter}&limit={limit}&order=desc&sort=published_utc&apiKey={POLYGON_KEY}"
+    url = f"https://api.polygon.io/v2/reference/news?ticker.any_of={ticker_filter}&limit={limit}&order=desc&sort=published_utc&apiKey={MASSIVE_KEY}"
 
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
@@ -307,6 +308,14 @@ def api_news():
     articles = []
     for a in data.get("results", []):
         pub = a.get("publisher", {})
+        # Extract sentiment insights per ticker (Massive premium)
+        insights = []
+        for ins in (a.get("insights", []) or []):
+            insights.append({
+                "ticker": ins.get("ticker", ""),
+                "sentiment": ins.get("sentiment", ""),
+                "reasoning": (ins.get("sentiment_reasoning", "") or "")[:200],
+            })
         articles.append({
             "title": a.get("title", ""),
             "url": a.get("article_url", ""),
@@ -315,6 +324,8 @@ def api_news():
             "tickers": a.get("tickers", [])[:6],
             "image": a.get("image_url", ""),
             "description": (a.get("description", "") or "")[:200],
+            "keywords": (a.get("keywords", []) or [])[:5],
+            "insights": insights,
         })
 
     return jsonify({
@@ -557,7 +568,7 @@ def api_market_movers():
         """Derive most-active from Polygon snapshot of common high-volume tickers."""
         # Use a targeted list of known high-volume tickers rather than the 7MB all-tickers endpoint
         high_vol_tickers = "NVDA,TSLA,AAPL,PLTR,SOFI,AMZN,AMD,BAC,META,MSFT,COIN,HOOD,INTC,F,AAL,NIO,RIVN,MARA,RIOT,SMCI"
-        url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={high_vol_tickers}&apiKey={POLYGON_KEY}"
+        url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={high_vol_tickers}&apiKey={MASSIVE_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
         with urllib.request.urlopen(req, timeout=20) as resp:
             data = json.loads(resp.read().decode())
@@ -577,8 +588,8 @@ def api_market_movers():
         return result
 
     try:
-        gainers_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/gainers?apiKey={POLYGON_KEY}"
-        losers_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/losers?apiKey={POLYGON_KEY}"
+        gainers_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/gainers?apiKey={MASSIVE_KEY}"
+        losers_url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/losers?apiKey={MASSIVE_KEY}"
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             f_gainers = executor.submit(_fetch_polygon_movers, gainers_url)
             f_losers = executor.submit(_fetch_polygon_movers, losers_url)
@@ -674,7 +685,7 @@ def api_macro():
 @app.route("/api/technicals")
 def api_technicals():
     def _fetch_rsi(ticker):
-        url = f"https://api.polygon.io/v1/indicators/rsi/{ticker}?timespan=day&window=14&limit=1&apiKey={POLYGON_KEY}"
+        url = f"https://api.polygon.io/v1/indicators/rsi/{ticker}?timespan=day&window=14&limit=1&apiKey={MASSIVE_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
@@ -1221,6 +1232,154 @@ def api_insider():
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
         return jsonify({"error": str(e)}), 502
+
+
+# ── Enhanced News with Sentiment Insights (Massive/Polygon) ──
+@app.route("/api/news-sentiment")
+def api_news_sentiment():
+    """Fetch news with per-ticker sentiment insights via Massive/Polygon premium."""
+    tickers_param = request.args.get("tickers", "")
+    limit = min(int(request.args.get("limit", "20")), 30)
+
+    ticker_filter = tickers_param if tickers_param else ",".join(ALL_TICKERS)
+    url = f"https://api.polygon.io/v2/reference/news?ticker.any_of={ticker_filter}&limit={limit}&order=desc&sort=published_utc&apiKey={MASSIVE_KEY}"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+    articles = []
+    for a in data.get("results", []):
+        pub = a.get("publisher", {})
+        # Extract sentiment insights per ticker
+        insights = []
+        for ins in (a.get("insights", []) or []):
+            insights.append({
+                "ticker": ins.get("ticker", ""),
+                "sentiment": ins.get("sentiment", ""),
+                "reasoning": (ins.get("sentiment_reasoning", "") or "")[:200],
+            })
+        articles.append({
+            "title": a.get("title", ""),
+            "url": a.get("article_url", ""),
+            "source": pub.get("name", ""),
+            "published": a.get("published_utc", ""),
+            "tickers": a.get("tickers", [])[:6],
+            "image": a.get("image_url", ""),
+            "description": (a.get("description", "") or "")[:200],
+            "keywords": (a.get("keywords", []) or [])[:5],
+            "insights": insights,
+        })
+
+    return jsonify({
+        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "count": len(articles),
+        "articles": articles,
+    }), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Technical Indicators (Massive/Polygon Stocks Advanced) ──
+@app.route("/api/technicals-full")
+def api_technicals_full():
+    """Fetch RSI + MACD + SMA50 + SMA200 + EMA20 for TOP_10 tickers via Massive."""
+    tickers_param = request.args.get("tickers", "")
+    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
+
+    def _fetch_indicator(ticker, indicator, params=""):
+        url = f"https://api.polygon.io/v1/indicators/{indicator}/{ticker}?timespan=day&limit=1{params}&apiKey={MASSIVE_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            data = json.loads(resp.read().decode())
+        values = data.get("results", {}).get("values", [])
+        return values[0] if values else None
+
+    def _fetch_all_for_ticker(ticker):
+        result = {"symbol": ticker}
+        try:
+            rsi = _fetch_indicator(ticker, "rsi", "&window=14")
+            if rsi:
+                v = round(rsi.get("value", 0), 2)
+                result["rsi"] = {"value": v, "signal": "oversold" if v < 30 else "overbought" if v > 70 else "neutral"}
+        except Exception:
+            result["rsi"] = None
+        try:
+            macd = _fetch_indicator(ticker, "macd")
+            if macd:
+                result["macd"] = {
+                    "value": round(macd.get("value", 0), 4),
+                    "signal": round(macd.get("signal", 0), 4),
+                    "histogram": round(macd.get("histogram", 0), 4),
+                    "trend": "bullish" if macd.get("histogram", 0) > 0 else "bearish",
+                }
+        except Exception:
+            result["macd"] = None
+        try:
+            sma50 = _fetch_indicator(ticker, "sma", "&window=50")
+            if sma50:
+                result["sma50"] = round(sma50.get("value", 0), 2)
+        except Exception:
+            result["sma50"] = None
+        try:
+            sma200 = _fetch_indicator(ticker, "sma", "&window=200")
+            if sma200:
+                result["sma200"] = round(sma200.get("value", 0), 2)
+        except Exception:
+            result["sma200"] = None
+        try:
+            ema20 = _fetch_indicator(ticker, "ema", "&window=20")
+            if ema20:
+                result["ema20"] = round(ema20.get("value", 0), 2)
+        except Exception:
+            result["ema20"] = None
+        return ticker, result
+
+    try:
+        technicals = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_all_for_ticker, t): t for t in tickers}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=30)
+                    technicals[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    technicals[t] = {"symbol": t, "error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "technicals": technicals,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Related Companies (Massive/Polygon Stocks Advanced) ────
+@app.route("/api/related/<ticker>")
+def api_related(ticker):
+    """Fetch related companies for a ticker via Massive/Polygon."""
+    try:
+        url = f"https://api.polygon.io/v1/related-companies/{ticker.upper()}?apiKey={MASSIVE_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        results = data.get("results", [])
+        # Deduplicate
+        seen = set()
+        related = []
+        for r in results:
+            t = r.get("ticker", "")
+            if t and t not in seen:
+                seen.add(t)
+                related.append(t)
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "ticker": ticker.upper(),
+            "related": related[:10],
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "ticker": ticker.upper(), "related": []}), 200, {"Cache-Control": "no-cache"}
 
 
 # ── Static File Serving ───────────────────────────────────
