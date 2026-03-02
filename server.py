@@ -25,6 +25,7 @@ def add_cors_headers(response):
 # ── API Keys ──────────────────────────────────────────────
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "SL1wF6nbcCYCWRbfl5TcepWwd5pwPAbW")
 FMP_KEY = os.environ.get("FMP_KEY", "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "22b226153fmsh05ce406581ceab8p1586d8jsn6de44ca4671f")
 
 # ── Tickers ───────────────────────────────────────────────
 PORTFOLIO_TICKERS = [
@@ -704,6 +705,275 @@ def api_technicals():
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "rsi": rsi,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Fundamentals (Key Metrics + Profile) ─────────────────
+@app.route("/api/fundamentals")
+def api_fundamentals():
+    """Fetch FMP key-metrics + profile for TOP_10 tickers."""
+    tickers_param = request.args.get("tickers", "")
+    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
+
+    def _fetch_fundamentals(ticker):
+        result = {"symbol": ticker}
+        # Key metrics (quarterly, latest)
+        try:
+            km_url = f"https://financialmodelingprep.com/stable/key-metrics?symbol={ticker}&period=quarter&limit=1&apikey={FMP_KEY}"
+            req = urllib.request.Request(km_url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                km_data = json.loads(resp.read().decode())
+            if isinstance(km_data, list) and km_data:
+                km = km_data[0]
+                result["keyMetrics"] = {
+                    "peRatio": km.get("peRatio"),
+                    "pbRatio": km.get("pbRatio"),
+                    "priceToSalesRatio": km.get("priceToSalesRatio"),
+                    "evToEbitda": km.get("enterpriseValueOverEbitda"),
+                    "evToFcf": km.get("evToFreeCashFlow"),
+                    "debtToEquity": km.get("debtToEquity"),
+                    "currentRatio": km.get("currentRatio"),
+                    "roe": km.get("returnOnEquity"),
+                    "roa": km.get("returnOnAssets"),
+                    "roic": km.get("returnOnCapitalEmployed"),
+                    "fcfYield": km.get("freeCashFlowYield"),
+                    "earningsYield": km.get("earningsYield"),
+                    "dividendYield": km.get("dividendYield"),
+                    "revenuePerShare": km.get("revenuePerShare"),
+                    "netIncomePerShare": km.get("netIncomePerShare"),
+                    "bookValuePerShare": km.get("bookValuePerShare"),
+                    "marketCap": km.get("marketCap"),
+                    "enterpriseValue": km.get("enterpriseValue"),
+                }
+        except Exception:
+            result["keyMetrics"] = {}
+        # Company profile
+        try:
+            pf_url = f"https://financialmodelingprep.com/stable/profile?symbol={ticker}&apikey={FMP_KEY}"
+            req = urllib.request.Request(pf_url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                pf_data = json.loads(resp.read().decode())
+            if isinstance(pf_data, list) and pf_data:
+                pf = pf_data[0]
+                result["profile"] = {
+                    "name": pf.get("companyName", ""),
+                    "sector": pf.get("sector", ""),
+                    "industry": pf.get("industry", ""),
+                    "beta": pf.get("beta"),
+                    "marketCap": pf.get("mktCap"),
+                    "employees": pf.get("fullTimeEmployees"),
+                    "country": pf.get("country", ""),
+                    "isEtf": pf.get("isEtf", False),
+                    "description": (pf.get("description", "") or "")[:300],
+                }
+        except Exception:
+            result["profile"] = {}
+        # Income statement (quarterly, latest 2)
+        try:
+            is_url = f"https://financialmodelingprep.com/stable/income-statement?symbol={ticker}&period=quarter&limit=2&apikey={FMP_KEY}"
+            req = urllib.request.Request(is_url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                is_data = json.loads(resp.read().decode())
+            if isinstance(is_data, list) and is_data:
+                latest = is_data[0]
+                result["income"] = {
+                    "revenue": latest.get("revenue"),
+                    "grossProfit": latest.get("grossProfit"),
+                    "grossMargin": latest.get("grossProfitRatio"),
+                    "operatingIncome": latest.get("operatingIncome"),
+                    "operatingMargin": latest.get("operatingIncomeRatio"),
+                    "netIncome": latest.get("netIncome"),
+                    "netMargin": latest.get("netIncomeRatio"),
+                    "eps": latest.get("eps"),
+                    "epsDiluted": latest.get("epsDiluted"),
+                    "ebitda": latest.get("ebitda"),
+                    "period": latest.get("period"),
+                    "date": latest.get("date"),
+                }
+                # Revenue growth QoQ if we have 2 quarters
+                if len(is_data) >= 2 and is_data[1].get("revenue"):
+                    prev_rev = is_data[1]["revenue"]
+                    curr_rev = latest.get("revenue", 0)
+                    if prev_rev and prev_rev != 0:
+                        result["income"]["revenueGrowthQoQ"] = round((curr_rev - prev_rev) / abs(prev_rev) * 100, 2)
+        except Exception:
+            result["income"] = {}
+        return ticker, result
+
+    try:
+        fundamentals = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_fundamentals, t): t for t in tickers}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=30)
+                    fundamentals[ticker] = data
+                except Exception as e:
+                    t = futures[future]
+                    fundamentals[t] = {"symbol": t, "error": str(e)}
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "fundamentals": fundamentals,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Earnings Surprises ───────────────────────────────────
+@app.route("/api/earnings-surprises")
+def api_earnings_surprises():
+    """Fetch recent earnings surprises for TOP_10 tickers."""
+    tickers_param = request.args.get("tickers", "")
+    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
+
+    def _fetch_surprises(ticker):
+        try:
+            url = f"https://financialmodelingprep.com/stable/earnings-surprises?symbol={ticker}&apikey={FMP_KEY}"
+            req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode())
+            surprises = []
+            for s in (data if isinstance(data, list) else [])[:4]:
+                actual = s.get("actualEarningResult")
+                estimated = s.get("estimatedEarning")
+                surprise_pct = None
+                if actual is not None and estimated is not None and estimated != 0:
+                    surprise_pct = round((actual - estimated) / abs(estimated) * 100, 2)
+                surprises.append({
+                    "date": s.get("date"),
+                    "actual": actual,
+                    "estimated": estimated,
+                    "surprisePct": surprise_pct,
+                })
+            return ticker, surprises
+        except Exception:
+            return ticker, []
+
+    try:
+        result = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_surprises, t): t for t in tickers}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    result[ticker] = data
+                except Exception:
+                    t = futures[future]
+                    result[t] = []
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "surprises": result,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Analyst Ratings (Seeking Alpha via RapidAPI) ─────────
+@app.route("/api/analyst-ratings")
+def api_analyst_ratings():
+    """Fetch analyst recommendations from Seeking Alpha for TOP_10 tickers."""
+    tickers_param = request.args.get("tickers", "")
+    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
+
+    # Seeking Alpha uses lowercase slugs
+    slugs = ",".join([t.lower() for t in tickers])
+    url = f"https://seeking-alpha-api.p.rapidapi.com/analyst-recommendation?slugs={slugs}"
+    headers = {
+        "x-rapidapi-host": "seeking-alpha-api.p.rapidapi.com",
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "User-Agent": "MarketPulse/1.0",
+    }
+
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        ratings = {}
+        # Response is typically { "slug": { "strong_buy": N, "buy": N, ... } }
+        if isinstance(raw, dict):
+            for slug, data in raw.items():
+                ticker = slug.upper()
+                if isinstance(data, dict):
+                    sb = data.get("strong_buy", 0) or 0
+                    b = data.get("buy", 0) or 0
+                    h = data.get("hold", 0) or 0
+                    s = data.get("sell", 0) or 0
+                    ss = data.get("strong_sell", 0) or 0
+                    total = sb + b + h + s + ss
+                    consensus_score = round((sb * 2 + b * 1 - s * 1 - ss * 2) / total, 2) if total else 0
+                    # Map to label
+                    if consensus_score >= 1.2:
+                        label = "Strong Buy"
+                    elif consensus_score >= 0.5:
+                        label = "Buy"
+                    elif consensus_score >= -0.5:
+                        label = "Hold"
+                    elif consensus_score >= -1.2:
+                        label = "Sell"
+                    else:
+                        label = "Strong Sell"
+                    ratings[ticker] = {
+                        "strongBuy": sb, "buy": b, "hold": h, "sell": s, "strongSell": ss,
+                        "total": total, "consensusScore": consensus_score, "consensus": label,
+                    }
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "ratings": ratings,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "ratings": {}}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Sector Performance ───────────────────────────────────
+@app.route("/api/sector-performance")
+def api_sector_performance():
+    """Fetch real-time sector performance from FMP."""
+    try:
+        url = f"https://financialmodelingprep.com/stable/sector-performance?apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        sectors = []
+        for s in (data if isinstance(data, list) else []):
+            sectors.append({
+                "sector": s.get("sector", ""),
+                "changesPercentage": s.get("changesPercentage", 0),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "sectors": sectors,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Stock Screener / Gainers by Sector ───────────────────
+@app.route("/api/stock-screener")
+def api_stock_screener():
+    """Fetch top gainers per sector from FMP stock screener."""
+    sector = request.args.get("sector", "Technology")
+    limit = min(int(request.args.get("limit", "10")), 50)
+    try:
+        url = f"https://financialmodelingprep.com/stable/stock-screener?sector={urllib.parse.quote(sector)}&limit={limit}&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        stocks = []
+        for s in (data if isinstance(data, list) else []):
+            stocks.append({
+                "symbol": s.get("symbol", ""),
+                "name": s.get("companyName", ""),
+                "marketCap": s.get("marketCap", 0),
+                "price": s.get("price", 0),
+                "beta": s.get("beta", 0),
+                "sector": s.get("sector", ""),
+                "industry": s.get("industry", ""),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "stocks": stocks,
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
         return jsonify({"error": str(e)}), 502
