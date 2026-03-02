@@ -26,6 +26,7 @@ def add_cors_headers(response):
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "SL1wF6nbcCYCWRbfl5TcepWwd5pwPAbW")
 FMP_KEY = os.environ.get("FMP_KEY", "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "22b226153fmsh05ce406581ceab8p1586d8jsn6de44ca4671f")
+UW_KEY = os.environ.get("UNUSUAL_WHALES_API_KEY", "cc97a47e-9c8d-4fdb-a2b8-be4eeba08045")
 
 # ── Tickers ───────────────────────────────────────────────
 PORTFOLIO_TICKERS = [
@@ -870,60 +871,264 @@ def api_earnings_surprises():
         return jsonify({"error": str(e)}), 502
 
 
-# ── Analyst Ratings (Seeking Alpha via RapidAPI) ─────────
+# ── Analyst Ratings (FMP Grades Consensus) ───────────────
 @app.route("/api/analyst-ratings")
 def api_analyst_ratings():
-    """Fetch analyst recommendations from Seeking Alpha for TOP_10 tickers."""
+    """Fetch analyst consensus grades for TOP_10 tickers from FMP."""
     tickers_param = request.args.get("tickers", "")
     tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
 
-    # Seeking Alpha uses lowercase slugs
-    slugs = ",".join([t.lower() for t in tickers])
-    url = f"https://seeking-alpha-api.p.rapidapi.com/analyst-recommendation?slugs={slugs}"
-    headers = {
-        "x-rapidapi-host": "seeking-alpha-api.p.rapidapi.com",
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "User-Agent": "MarketPulse/1.0",
-    }
+    def _fetch_grades(ticker):
+        try:
+            url = f"https://financialmodelingprep.com/stable/grades-consensus?symbol={ticker}&apikey={FMP_KEY}"
+            req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode())
+            if isinstance(data, list) and data:
+                g = data[0]
+                sb = g.get("strongBuy", 0) or 0
+                b = g.get("buy", 0) or 0
+                h = g.get("hold", 0) or 0
+                s = g.get("sell", 0) or 0
+                ss = g.get("strongSell", 0) or 0
+                total = sb + b + h + s + ss
+                consensus_score = round((sb * 2 + b * 1 - s * 1 - ss * 2) / total, 2) if total else 0
+                return ticker, {
+                    "strongBuy": sb, "buy": b, "hold": h, "sell": s, "strongSell": ss,
+                    "total": total, "consensusScore": consensus_score,
+                    "consensus": g.get("consensus", "N/A"),
+                }
+        except Exception:
+            pass
+        return ticker, None
 
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            raw = json.loads(resp.read().decode())
         ratings = {}
-        # Response is typically { "slug": { "strong_buy": N, "buy": N, ... } }
-        if isinstance(raw, dict):
-            for slug, data in raw.items():
-                ticker = slug.upper()
-                if isinstance(data, dict):
-                    sb = data.get("strong_buy", 0) or 0
-                    b = data.get("buy", 0) or 0
-                    h = data.get("hold", 0) or 0
-                    s = data.get("sell", 0) or 0
-                    ss = data.get("strong_sell", 0) or 0
-                    total = sb + b + h + s + ss
-                    consensus_score = round((sb * 2 + b * 1 - s * 1 - ss * 2) / total, 2) if total else 0
-                    # Map to label
-                    if consensus_score >= 1.2:
-                        label = "Strong Buy"
-                    elif consensus_score >= 0.5:
-                        label = "Buy"
-                    elif consensus_score >= -0.5:
-                        label = "Hold"
-                    elif consensus_score >= -1.2:
-                        label = "Sell"
-                    else:
-                        label = "Strong Sell"
-                    ratings[ticker] = {
-                        "strongBuy": sb, "buy": b, "hold": h, "sell": s, "strongSell": ss,
-                        "total": total, "consensusScore": consensus_score, "consensus": label,
-                    }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_grades, t): t for t in tickers}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    ticker, data = future.result(timeout=20)
+                    if data:
+                        ratings[ticker] = data
+                except Exception:
+                    pass
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "ratings": ratings,
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
         return jsonify({"error": str(e), "ratings": {}}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Market Tide (Unusual Whales) ─────────────────────────
+@app.route("/api/market-tide")
+def api_market_tide():
+    """Fetch market-wide options flow tide from Unusual Whales."""
+    date_param = request.args.get("date", "")
+    try:
+        url = "https://api.unusualwhales.com/api/market/market-tide"
+        if date_param:
+            url += f"?date={date_param}"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        records = raw.get("data", [])
+        # Summarize: latest reading + aggregate stats
+        summary = {}
+        if records:
+            last = records[-1]
+            total_call = sum(float(r.get("net_call_premium", 0)) for r in records)
+            total_put = sum(float(r.get("net_put_premium", 0)) for r in records)
+            total_vol = sum(int(r.get("net_volume", 0)) for r in records)
+            summary = {
+                "latestTimestamp": last.get("timestamp", ""),
+                "latestNetCallPremium": float(last.get("net_call_premium", 0)),
+                "latestNetPutPremium": float(last.get("net_put_premium", 0)),
+                "latestNetVolume": int(last.get("net_volume", 0)),
+                "totalNetCallPremium": round(total_call, 2),
+                "totalNetPutPremium": round(total_put, 2),
+                "totalNetVolume": total_vol,
+                "dataPoints": len(records),
+                "signal": "bullish" if total_call > abs(total_put) else "bearish",
+            }
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "summary": summary,
+            "data": records[-20:],  # Last 20 minutes for chart
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "summary": {}, "data": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Options Flow Alerts (Unusual Whales) ─────────────────
+@app.route("/api/options-flow")
+def api_options_flow():
+    """Fetch unusual options flow alerts from Unusual Whales."""
+    ticker_param = request.args.get("ticker", "")
+    limit = min(int(request.args.get("limit", "30")), 50)
+    try:
+        url = f"https://api.unusualwhales.com/api/option-trades/flow-alerts"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        alerts = raw.get("data", [])
+        # Filter by ticker if requested, then limit
+        if ticker_param:
+            alerts = [a for a in alerts if a.get("ticker", "").upper() == ticker_param.upper()]
+        alerts = alerts[:limit]
+        # Clean up for frontend
+        cleaned = []
+        for a in alerts:
+            cleaned.append({
+                "ticker": a.get("ticker", ""),
+                "optionChain": a.get("option_chain", ""),
+                "alertRule": a.get("alert_rule", ""),
+                "premium": float(a.get("total_premium", 0)),
+                "volume": int(a.get("volume", 0)),
+                "openInterest": int(a.get("open_interest", 0)) if a.get("open_interest") else 0,
+                "volumeOiRatio": float(a.get("volume_oi_ratio", 0)) if a.get("volume_oi_ratio") else 0,
+                "tradeCount": int(a.get("trade_count", 0)),
+                "size": int(a.get("total_size", 0)),
+                "bid": a.get("bid", ""),
+                "ask": a.get("ask", ""),
+                "price": a.get("price", ""),
+                "sector": a.get("sector", ""),
+                "allOpening": a.get("all_opening_trades", False),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "count": len(cleaned),
+            "alerts": cleaned,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "count": 0, "alerts": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Dark Pool Flow (Unusual Whales) ──────────────────────
+@app.route("/api/dark-pool")
+def api_dark_pool():
+    """Fetch recent dark pool (off-exchange) trades from Unusual Whales."""
+    ticker_param = request.args.get("ticker", "")
+    limit = min(int(request.args.get("limit", "30")), 100)
+    try:
+        if ticker_param:
+            url = f"https://api.unusualwhales.com/api/darkpool/{ticker_param.upper()}"
+        else:
+            url = "https://api.unusualwhales.com/api/darkpool/recent"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        trades = raw.get("data", [])
+        trades = trades[:limit]
+        cleaned = []
+        for t in trades:
+            cleaned.append({
+                "ticker": t.get("ticker", ""),
+                "price": t.get("price", ""),
+                "size": int(t.get("size", 0)),
+                "premium": t.get("premium", ""),
+                "volume": int(t.get("volume", 0)),
+                "executedAt": t.get("executed_at", ""),
+                "marketCenter": t.get("market_center", ""),
+                "nbboBid": t.get("nbbo_bid", ""),
+                "nbboAsk": t.get("nbbo_ask", ""),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "count": len(cleaned),
+            "trades": cleaned,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "count": 0, "trades": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Congress Trades (Unusual Whales — live) ──────────────
+@app.route("/api/congress-trades-live")
+def api_congress_trades_live():
+    """Fetch recent congressional trades from Unusual Whales."""
+    try:
+        url = "https://api.unusualwhales.com/api/congress/recent-trades"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        trades = raw.get("data", [])[:20]
+        cleaned = []
+        for t in trades:
+            cleaned.append({
+                "firstName": (t.get("name", "") or "").split()[0] if t.get("name") else "",
+                "lastName": " ".join((t.get("name", "") or "").split()[1:]) if t.get("name") else "",
+                "office": (t.get("member_type", "") or "").title(),
+                "symbol": t.get("ticker", "") or "",
+                "transactionDate": t.get("transaction_date", ""),
+                "transactionType": t.get("txn_type", ""),
+                "amount": t.get("amounts", ""),
+                "assetDescription": t.get("issuer", "") or t.get("notes", ""),
+                "filedDate": t.get("filed_at_date", ""),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "trades": cleaned,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "trades": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Ticker Options Flow (Unusual Whales) ─────────────────
+@app.route("/api/ticker-flow/<ticker>")
+def api_ticker_flow(ticker):
+    """Fetch recent options flow for a specific ticker."""
+    try:
+        url = f"https://api.unusualwhales.com/api/stock/{ticker.upper()}/flow-recent"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        # Response can be a list directly
+        records = raw if isinstance(raw, list) else raw.get("data", [])
+        records = records[:20]
+        cleaned = []
+        for r in records:
+            cleaned.append({
+                "optionChain": r.get("option_chain_id", ""),
+                "type": r.get("option_type", ""),
+                "delta": r.get("delta", ""),
+                "premium": float(r.get("price", 0)) * int(r.get("size", 0)) * 100 if r.get("price") and r.get("size") else 0,
+                "size": int(r.get("size", 0)),
+                "volume": int(r.get("volume", 0)),
+                "iv": r.get("implied_volatility", ""),
+                "bid": r.get("nbbo_bid", ""),
+                "ask": r.get("nbbo_ask", ""),
+                "price": r.get("price", ""),
+                "underlyingPrice": r.get("underlying_price", ""),
+            })
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "ticker": ticker.upper(),
+            "count": len(cleaned),
+            "flow": cleaned,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "ticker": ticker.upper(), "count": 0, "flow": []}), 200, {"Cache-Control": "no-cache"}
 
 
 # ── Sector Performance ───────────────────────────────────
