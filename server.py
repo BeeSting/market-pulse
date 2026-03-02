@@ -14,6 +14,14 @@ from flask import Flask, send_from_directory, jsonify, request
 
 app = Flask(__name__, static_folder="static")
 
+# ── CORS ──────────────────────────────────────────────────
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
 # ── API Keys ──────────────────────────────────────────────
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "SL1wF6nbcCYCWRbfl5TcepWwd5pwPAbW")
 FMP_KEY = os.environ.get("FMP_KEY", "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
