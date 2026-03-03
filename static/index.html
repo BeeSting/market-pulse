@@ -606,18 +606,32 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
 @media (max-width: 767px) { .score-breakdown-grid { grid-template-columns: repeat(2, 1fr); } }
 .sb-card {
   background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: var(--radius-md); padding: 16px;
+  border-radius: var(--radius-md); padding: 16px; cursor: pointer;
+  transition: border-color var(--transition-interactive);
 }
+.sb-card:hover { border-color: var(--color-border-strong); }
+.sb-card.sb-open { border-color: var(--color-border-strong); }
 .sb-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
 .sb-card-name { font-size: 0.6875rem; font-weight: 600; color: var(--color-text-muted); }
 .sb-card-score { font-size: var(--text-sm); font-weight: 700; font-family: 'DM Sans', sans-serif; }
 .sb-card-delta { font-size: 0.625rem; font-weight: 600; margin-left: 4px; }
 .sb-card-delta.pos { color: var(--color-green); }
 .sb-card-delta.neg { color: var(--color-red); }
-.sb-card-chev { color: var(--color-text-faint); margin-left: 4px; font-size: 0.75rem; }
-.sb-card-sub { font-size: 0.6rem; color: var(--color-text-faint); margin-top: 4px; line-height: 1.4; }
+.sb-card-chev { color: var(--color-text-faint); margin-left: 4px; font-size: 0.75rem; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); display: inline-block; }
+.sb-card.sb-open .sb-card-chev { transform: rotate(90deg); }
 .sb-bar { height: 4px; background: var(--bar-track); border-radius: 2px; overflow: hidden; }
 .sb-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease-out; }
+.sb-card-detail {
+  max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.sb-card.sb-open .sb-card-detail { max-height: 300px; }
+.sb-detail-rows { padding-top: var(--space-3); display: flex; flex-direction: column; gap: 6px; }
+.sb-detail-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.6875rem; line-height: 1.3;
+}
+.sb-detail-label { color: var(--color-text-muted); }
+.sb-detail-value { font-weight: 600; color: var(--color-text); text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Score trend row */
 .score-trend-row {
@@ -3619,31 +3633,27 @@ function buildFundamentalSubItems(ticker) {
   const inc = fd.income || {};
   const profile = fd.profile || {};
   const isEtf = profile.isEtf === true;
-  if (isEtf) return null; // ETFs like SLV/IAU: no fundamentals to show
+  if (isEtf) return null;
 
-  const items = [];
+  const fundRows = [];
+  if (inc.revenueGrowthQoQ != null) fundRows.push({label:'Revenue Growth', value:(inc.revenueGrowthQoQ >= 0 ? '+' : '')+fmt(inc.revenueGrowthQoQ, 1)+'%'});
+  if (inc.grossMargin != null)      fundRows.push({label:'Gross Margin', value:fmt(inc.grossMargin * 100, 1)+'%'});
+  if (inc.netMargin != null)        fundRows.push({label:'Net Margin', value:fmt(inc.netMargin * 100, 1)+'%'});
+  if (km.roe != null)               fundRows.push({label:'ROIC', value:fmt(km.roe * 100, 1)+'%'});
+  if (inc.revenue != null)          fundRows.push({label:'Revenue', value:fmtM(inc.revenue)});
+  if (inc.ebitda != null)           fundRows.push({label:'EBITDA', value:fmtM(inc.ebitda)});
 
-  // Fundamentals pillar data
-  const fundItems = [];
-  if (inc.revenueGrowthQoQ != null) fundItems.push(`Rev Growth QoQ: ${inc.revenueGrowthQoQ >= 0 ? '+' : ''}${fmt(inc.revenueGrowthQoQ, 1)}%`);
-  if (inc.grossMargin != null)      fundItems.push(`Gross Margin: ${fmt(inc.grossMargin * 100, 1)}%`);
-  if (inc.netMargin != null)        fundItems.push(`Net Margin: ${fmt(inc.netMargin * 100, 1)}%`);
-  if (km.roe != null)               fundItems.push(`ROE: ${fmt(km.roe * 100, 1)}%`);
-  if (inc.revenue != null)          fundItems.push(`Revenue: ${fmtM(inc.revenue)}`);
-  if (inc.ebitda != null)           fundItems.push(`EBITDA: ${fmtM(inc.ebitda)}`);
-
-  // Valuation pillar data
-  const valItems = [];
-  if (km.peRatio != null)           valItems.push(`P/E: ${fmt(km.peRatio, 1)}×`);
-  if (km.pbRatio != null)           valItems.push(`P/B: ${fmt(km.pbRatio, 1)}×`);
-  if (km.evToEbitda != null)        valItems.push(`EV/EBITDA: ${fmt(km.evToEbitda, 1)}×`);
-  if (km.fcfYield != null)          valItems.push(`FCF Yield: ${fmt(km.fcfYield * 100, 1)}%`);
-  if (km.priceToSalesRatio != null) valItems.push(`P/S: ${fmt(km.priceToSalesRatio, 1)}×`);
-  if (km.marketCap != null)         valItems.push(`Mkt Cap: ${fmtM(km.marketCap)}`);
+  const valRows = [];
+  if (km.peRatio != null)           valRows.push({label:'P/E Ratio', value:fmt(km.peRatio, 1)});
+  if (km.pbRatio != null)           valRows.push({label:'P/B Ratio', value:fmt(km.pbRatio, 1)});
+  if (km.evToEbitda != null)        valRows.push({label:'EV/EBITDA', value:fmt(km.evToEbitda, 1)});
+  if (km.fcfYield != null)          valRows.push({label:'FCF Yield', value:fmt(km.fcfYield * 100, 1)+'%'});
+  if (km.priceToSalesRatio != null) valRows.push({label:'P/S Ratio', value:fmt(km.priceToSalesRatio, 1)});
+  if (km.marketCap != null)         valRows.push({label:'Market Cap', value:fmtM(km.marketCap)});
 
   return {
-    fundamentals: fundItems.length ? fundItems.join(' · ') : null,
-    valuation:    valItems.length   ? valItems.join(' · ')   : null
+    fundamentals: fundRows.length ? fundRows : null,
+    valuation:    valRows.length   ? valRows   : null
   };
 }
 
@@ -3651,17 +3661,15 @@ function buildAnalystSubItems(ticker) {
   if (!_liveAnalystRatings) return null;
   const r = _liveAnalystRatings[ticker];
   if (!r) return null;
-  const parts = [];
-  if (r.strongBuy)  parts.push(`Strong Buy: ${r.strongBuy}`);
-  if (r.buy)        parts.push(`Buy: ${r.buy}`);
-  if (r.hold)       parts.push(`Hold: ${r.hold}`);
-  if (r.sell)       parts.push(`Sell: ${r.sell}`);
-  if (r.strongSell) parts.push(`Strong Sell: ${r.strongSell}`);
-  return {
-    consensus: sanitizeSource(r.consensus || ''),
-    breakdown: parts.join(' / '),
-    total: r.total || 0
-  };
+  const rows = [];
+  if (r.consensus) rows.push({label:'Analyst Rating', value:sanitizeSource(r.consensus), cls: r.consensus === 'Strong Buy' || r.consensus === 'Buy' ? 'text-green' : r.consensus === 'Sell' || r.consensus === 'Strong Sell' ? 'text-red' : 'text-amber'});
+  if (r.strongBuy)  rows.push({label:'Strong Buy', value:r.strongBuy});
+  if (r.buy)        rows.push({label:'Buy', value:r.buy});
+  if (r.hold)       rows.push({label:'Hold', value:r.hold});
+  if (r.sell)       rows.push({label:'Sell', value:r.sell});
+  if (r.strongSell) rows.push({label:'Strong Sell', value:r.strongSell});
+  if (r.total)      rows.push({label:'Total Analysts', value:r.total});
+  return rows.length ? rows : null;
 }
 
 function enrichAlphaWithTechnicals(techData) {
@@ -3673,22 +3681,25 @@ function buildTechnicalSubItems(ticker) {
   if (!_liveTechnicals) return null;
   const t = _liveTechnicals[ticker];
   if (!t) return null;
-  const parts = [];
+  const rows = [];
   if (t.rsi) {
-    const v = t.rsi.value;
     const sig = t.rsi.signal;
-    const sigCls = sig === 'oversold' ? 'text-green' : sig === 'overbought' ? 'text-red' : '';
-    parts.push(`RSI(14): <span class="${sigCls}">${v} (${sig})</span>`);
+    const cls = sig === 'oversold' ? 'text-green' : sig === 'overbought' ? 'text-red' : '';
+    rows.push({label:'RSI (14)', value:t.rsi.value, cls});
   }
   if (t.macd) {
-    const trend = t.macd.trend;
-    const tCls = trend === 'bullish' ? 'text-green' : 'text-red';
-    parts.push(`MACD: <span class="${tCls}">${trend}</span> (H: ${t.macd.histogram})`);
+    const cls = t.macd.trend === 'bullish' ? 'text-green' : 'text-red';
+    rows.push({label:'MACD Trend', value:t.macd.trend.charAt(0).toUpperCase()+t.macd.trend.slice(1), cls});
+    rows.push({label:'MACD Histogram', value:t.macd.histogram});
   }
-  if (t.sma50 != null)  parts.push(`SMA50: $${fmt(t.sma50, 2)}`);
-  if (t.sma200 != null) parts.push(`SMA200: $${fmt(t.sma200, 2)}`);
-  if (t.ema20 != null)  parts.push(`EMA20: $${fmt(t.ema20, 2)}`);
-  return parts.length ? parts.join(' · ') : null;
+  if (t.sma50 != null && t.ema20 != null) {
+    const above = (t.ema20 > t.sma50);
+    rows.push({label:'Above 50-DMA', value:above ? 'Yes' : 'No', cls:above ? 'text-green' : 'text-red'});
+  }
+  if (t.sma50 != null)  rows.push({label:'SMA 50', value:'$'+fmt(t.sma50, 2)});
+  if (t.sma200 != null) rows.push({label:'SMA 200', value:'$'+fmt(t.sma200, 2)});
+  if (t.ema20 != null)  rows.push({label:'EMA 20', value:'$'+fmt(t.ema20, 2)});
+  return rows.length ? rows : null;
 }
 
 /* ==========================================
@@ -3877,31 +3888,44 @@ function renderAlphaTable() {
       </div>`;
     }).join('');
 
-    // Build Pillar Breakdown cards
+    // Build Pillar Breakdown cards (expandable)
     const pillarKeys = ['fundamentals','valuation','technicals','sentiment','catalysts','moat'];
-    // Fetch live data for this ticker
     const liveFundSub = buildFundamentalSubItems(s.ticker);
     const liveAnalyst = buildAnalystSubItems(s.ticker);
     const liveTechSub = buildTechnicalSubItems(s.ticker);
-    const sbHTML = pillarKeys.map(k => {
+    const sbHTML = pillarKeys.map((k, pi) => {
       const v = s.pillars[k] || 0;
       const d = (s.pillarDeltas && s.pillarDeltas[k]) || 0;
       const dCls = d > 0 ? 'pos' : d < 0 ? 'neg' : '';
       const dText = d > 0 ? `(+${d})` : d < 0 ? `(${d})` : '';
       const barCol = v >= 75 ? '#22c55e' : v >= 60 ? '#3b82f6' : v >= 45 ? '#f59e0b' : '#ef4444';
-      // Build live sub-line for relevant pillars
-      let subLine = '';
+
+      // Build detail rows for each pillar
+      let detailRows = [];
       if (k === 'fundamentals' && liveFundSub && liveFundSub.fundamentals) {
-        subLine = `<div class="sb-card-sub">${sanitizeSource(liveFundSub.fundamentals)}</div>`;
+        detailRows = liveFundSub.fundamentals;
       } else if (k === 'valuation' && liveFundSub && liveFundSub.valuation) {
-        subLine = `<div class="sb-card-sub">${sanitizeSource(liveFundSub.valuation)}</div>`;
+        detailRows = liveFundSub.valuation;
       } else if (k === 'technicals' && liveTechSub) {
-        subLine = `<div class="sb-card-sub">${liveTechSub}</div>`;
+        detailRows = liveTechSub;
       } else if (k === 'sentiment' && liveAnalyst) {
-        const consBadgeCls = liveAnalyst.consensus === 'Strong Buy' || liveAnalyst.consensus === 'Buy' ? 'text-green' : liveAnalyst.consensus === 'Sell' || liveAnalyst.consensus === 'Strong Sell' ? 'text-red' : 'text-amber';
-        subLine = `<div class="sb-card-sub"><span class="${consBadgeCls}">${sanitizeSource(liveAnalyst.consensus)}</span> — ${sanitizeSource(liveAnalyst.breakdown)} (${liveAnalyst.total} analysts)</div>`;
+        detailRows = liveAnalyst;
+      } else if (k === 'catalysts') {
+        // Static catalyst data from portfolio
+        if (s.highlights && s.highlights.earnings) detailRows.push({label:'Earnings', value:sanitizeSource(s.highlights.earnings).substring(0,60)});
+        if (s.keyTrigger) detailRows.push({label:'Key Trigger', value:sanitizeSource(s.keyTrigger).substring(0,60)});
+      } else if (k === 'moat') {
+        if (s.moatDesc) detailRows.push({label:'Economic Moat', value:sanitizeSource(s.moatDesc).substring(0,60)});
+        if (s.peerRank) detailRows.push({label:'Peer Ranking', value:sanitizeSource(s.peerRank).substring(0,60)});
       }
-      return `<div class="sb-card">
+
+      const detailHTML = detailRows.length ? detailRows.map(r => {
+        const valCls = r.cls ? ` class="${r.cls}"` : '';
+        return `<div class="sb-detail-row"><span class="sb-detail-label">${r.label}</span><span class="sb-detail-value"${valCls}>${r.value}</span></div>`;
+      }).join('') : '';
+
+      const cardId = `sb-card-${idx}-${pi}`;
+      return `<div class="sb-card" id="${cardId}" onclick="this.classList.toggle('sb-open');event.stopPropagation();">
         <div class="sb-card-top">
           <span class="sb-card-name">${PILLAR_LABELS[k]}</span>
           <span>
@@ -3911,7 +3935,7 @@ function renderAlphaTable() {
           </span>
         </div>
         <div class="sb-bar"><div class="sb-fill" style="width:${v}%;background:${barCol};"></div></div>
-        ${subLine}
+        <div class="sb-card-detail"><div class="sb-detail-rows">${detailHTML}</div></div>
       </div>`;
     }).join('');
 
@@ -4425,50 +4449,28 @@ function renderSentiment(data) {
 /* ==========================================
    INSIDER TRADING RENDERING
    ========================================== */
-const INSIDER_FALLBACK = [
-  {ticker:'SLV',reportingName:'BlackRock Inc (Inst)',transactionDate:'2026-02-28',filingDate:'2026-03-01',transactionType:'P-Purchase',securitiesTransacted:250000,price:29.80,typeOfOwner:'Institution'},
-  {ticker:'SOFI',reportingName:'Anthony Noto (CEO)',transactionDate:'2026-02-25',filingDate:'2026-02-26',transactionType:'P-Purchase',securitiesTransacted:15000,price:8.40,typeOfOwner:'Officer - Director'},
-  {ticker:'IREN',reportingName:'Daniel Roberts (CFO)',transactionDate:'2026-02-20',filingDate:'2026-02-21',transactionType:'P-Purchase',securitiesTransacted:10000,price:22.10,typeOfOwner:'Officer - Director'},
-  {ticker:'WULF',reportingName:'Paul Shortino (CEO)',transactionDate:'2026-02-18',filingDate:'2026-02-19',transactionType:'S-Sale',securitiesTransacted:50000,price:5.20,typeOfOwner:'Officer - Director'},
-  {ticker:'RKLB',reportingName:'Peter Beck (CEO)',transactionDate:'2026-02-24',filingDate:'2026-02-25',transactionType:'P-Purchase',securitiesTransacted:8000,price:10.10,typeOfOwner:'Officer - Director'},
-  {ticker:'PLTR',reportingName:'Alex Karp (CEO)',transactionDate:'2026-02-22',filingDate:'2026-02-23',transactionType:'S-Sale',securitiesTransacted:100000,price:82.00,typeOfOwner:'Officer - Director'},
-];
-
 function renderInsider(data) {
   const tbody = document.getElementById('insider-tbody');
   if (!tbody) return;
 
-  // Start with fallback data
-  let trades = [...INSIDER_FALLBACK];
+  let trades = [];
 
   if (data && data.insider) {
     try {
-      const live = [];
       Object.entries(data.insider).forEach(([sym, arr]) => {
         if (!arr) return;
-        arr.slice(0,3).forEach(t => live.push({...t, ticker:sym}));
+        arr.slice(0,5).forEach(t => trades.push({...t, ticker:sym}));
       });
-      if (live.length) {
-        // Merge: add live trades that aren't duplicates, then fill remaining from fallback
-        const seen = new Set();
-        const merged = [];
-        // Add live trades first
-        live.forEach(t => {
-          const key = `${t.ticker}-${t.reportingName}-${t.transactionDate}`;
-          if (!seen.has(key)) { seen.add(key); merged.push(t); }
-        });
-        // Then add fallback trades that don't overlap
-        INSIDER_FALLBACK.forEach(t => {
-          const key = `${t.ticker}-${t.reportingName}-${t.transactionDate}`;
-          if (!seen.has(key)) { seen.add(key); merged.push(t); }
-        });
-        trades = merged;
-      }
     } catch(e) {}
   }
 
   // Sort by transaction date descending
   trades.sort((a,b) => (b.transactionDate||'').localeCompare(a.transactionDate||''));
+
+  if (!trades.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-sm);">Loading insider trades...</td></tr>';
+    return;
+  }
 
   tbody.innerHTML = '';
   trades.slice(0,20).forEach(t => {
