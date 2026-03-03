@@ -230,32 +230,48 @@ def _dedup_key(title):
     words = clean.split()[:6]
     return " ".join(words)
 
+def _normalise_url(url):
+    """Strip query params and fragments for dedup comparison."""
+    if not url:
+        return ""
+    # Remove query string and fragment
+    url = url.split("?")[0].split("#")[0].strip().rstrip("/")
+    # Remove trailing /amp or /amp/
+    url = re.sub(r'/amp/?$', '', url)
+    return url.lower()
+
 def _dedup_articles(articles):
-    """Fast dedup using normalised title key + URL dedup."""
-    seen_keys = set()
+    """Aggressive dedup: normalised URL + title 6-word + title 5-word keys."""
     seen_urls = set()
+    seen_keys = set()
     unique = []
     for a in articles:
-        # URL-based dedup (exact)
-        url = (a.get("url","") or "").strip().rstrip("/")
-        if url and url in seen_urls:
+        # URL-based dedup (normalised — strip query params, fragments)
+        norm_url = _normalise_url(a.get("url",""))
+        if norm_url and norm_url in seen_urls:
             continue
-        if url:
-            seen_urls.add(url)
-        # Title-based dedup (normalised first 6 words)
+        if norm_url:
+            seen_urls.add(norm_url)
+        # Title-based dedup — normalised first 6 words
         key = _dedup_key(a.get("title",""))
         if not key or len(key) < 8:
             continue
         if key in seen_keys:
             continue
         seen_keys.add(key)
-        # Also add a shorter 4-word key to catch near-dupes across sources
+        # Also check 5-word key to catch near-dupes across sources
         words = key.split()
-        if len(words) >= 4:
-            short_key = " ".join(words[:4])
-            if short_key in seen_keys and len(short_key) > 15:
+        if len(words) >= 5:
+            short_key = " ".join(words[:5])
+            if short_key in seen_keys:
                 continue
             seen_keys.add(short_key)
+        # Also check 4-word key for very similar headlines
+        if len(words) >= 4:
+            tiny_key = " ".join(words[:4])
+            if tiny_key in seen_keys and len(tiny_key) > 15:
+                continue
+            seen_keys.add(tiny_key)
         unique.append(a)
     return unique
 
@@ -599,6 +615,21 @@ def _fetch_all_sources():
             a["title"] = _html.unescape(a["title"])
         if a.get("description"):
             a["description"] = _html.unescape(a["description"])
+
+    # Clean descriptions that are just URLs (Benzinga often embeds source URLs as body)
+    _url_pattern = re.compile(r'^\s*https?://\S+\s*$')
+    for a in unique:
+        desc = a.get("description", "") or ""
+        if _url_pattern.match(desc):
+            a["description"] = ""
+        # Also strip leading/trailing URLs from descriptions
+        else:
+            # Remove URLs that start the description
+            cleaned = re.sub(r'^\s*https?://\S+\s*', '', desc).strip()
+            if len(cleaned) > 20:
+                a["description"] = cleaned
+            elif _url_pattern.match(desc):
+                a["description"] = ""
 
     # Categorise and score
     for a in unique:
