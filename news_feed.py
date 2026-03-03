@@ -637,6 +637,7 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
             "category_counts": {},
             "articles": [],
             "status": "warming",
+            "_debug": {"refresh_active": _refresh_in_progress, "pid": os.getpid()},
         }
     
     # Trigger background refresh if stale
