@@ -50,7 +50,7 @@ _cache_lock = threading.Lock()
 _cache = {"data": None, "ts": 0}
 _CACHE_TTL = 120  # seconds
 
-def _http_get(url, timeout=6):
+def _http_get(url, timeout=5):
     """Simple HTTP GET returning decoded text."""
     import socket
     old_timeout = socket.getdefaulttimeout()
@@ -528,37 +528,57 @@ def _fetch_all_sources():
     """Raw fetch from all sources — expensive, runs at most once per _CACHE_TTL."""
     import time as _time
     t0 = _time.time()
-
-    sources = [
-        ("massive", fetch_massive_news),
-        ("benzinga", fetch_benzinga_news),
-        ("marketaux", fetch_marketaux),
-        ("bloomberg_rss", fetch_bloomberg_rss),
-        ("cnbc_rss", fetch_cnbc_rss),
-    ]
+    HARD_DEADLINE = 25  # seconds — must finish before gunicorn timeout
 
     all_articles = []
     source_counts = {}
 
-    # Use ThreadPoolExecutor to fetch non-FMP sources in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        future_map = {executor.submit(fn): name for name, fn in sources}
-        for future in concurrent.futures.as_completed(future_map, timeout=12):
-            name = future_map[future]
-            try:
-                result = future.result(timeout=10)
-                all_articles.extend(result)
-                source_counts[name] = len(result)
-            except Exception as e:
-                source_counts[name] = 0
-                print(f"[NewsFeed] {name} failed: {e}")
+    # Fast sources first (RSS, Massive, Benzinga) then slow ones
+    fast_sources = [
+        ("massive", fetch_massive_news),
+        ("benzinga", fetch_benzinga_news),
+        ("bloomberg_rss", fetch_bloomberg_rss),
+        ("cnbc_rss", fetch_cnbc_rss),
+    ]
 
-    # FMP sources last, sequentially with stagger (rate-limit sensitive)
-    for name, fn in [("fmp_stock", fetch_fmp_stock_news), ("fmp_general", fetch_fmp_general_news)]:
+    for name, fn in fast_sources:
+        if _time.time() - t0 > HARD_DEADLINE:
+            print(f"[NewsFeed] Deadline hit, skipping remaining sources")
+            break
         try:
             result = fn()
             all_articles.extend(result)
             source_counts[name] = len(result)
+            print(f"[NewsFeed] {name}: {len(result)} articles")
+        except Exception as e:
+            source_counts[name] = 0
+            print(f"[NewsFeed] {name} failed: {e}")
+
+    # MarketAux (can be slow, skip if near deadline)
+    if _time.time() - t0 < HARD_DEADLINE - 8:
+        try:
+            result = fetch_marketaux()
+            all_articles.extend(result)
+            source_counts["marketaux"] = len(result)
+            print(f"[NewsFeed] marketaux: {len(result)} articles")
+        except Exception as e:
+            source_counts["marketaux"] = 0
+            print(f"[NewsFeed] marketaux failed: {e}")
+    else:
+        source_counts["marketaux"] = 0
+        print("[NewsFeed] Skipping marketaux (near deadline)")
+
+    # FMP sources last (rate-limit sensitive)
+    for name, fn in [("fmp_stock", fetch_fmp_stock_news), ("fmp_general", fetch_fmp_general_news)]:
+        if _time.time() - t0 > HARD_DEADLINE - 3:
+            source_counts[name] = 0
+            print(f"[NewsFeed] Skipping {name} (near deadline)")
+            continue
+        try:
+            result = fn()
+            all_articles.extend(result)
+            source_counts[name] = len(result)
+            print(f"[NewsFeed] {name}: {len(result)} articles")
         except Exception as e:
             source_counts[name] = 0
             print(f"[NewsFeed] {name} failed (rate limit?): {e}")
@@ -600,19 +620,32 @@ def _fetch_all_sources():
     }
 
 
+_warming = threading.Event()
+
 def _get_cached():
-    """Return cached data or refresh if stale."""
+    """Return cached data or refresh if stale. Returns None if warming."""
     import time as _time
     now = _time.time()
     with _cache_lock:
         if _cache["data"] and (now - _cache["ts"]) < _CACHE_TTL:
             return _cache["data"]
-    # Cache miss — fetch (outside lock to avoid blocking other workers)
-    fresh = _fetch_all_sources()
-    with _cache_lock:
-        _cache["data"] = fresh
-        _cache["ts"] = _time.time()
-    return fresh
+    # If another thread is warming, wait briefly then return whatever we have
+    if _warming.is_set():
+        _warming.wait(timeout=20)
+        with _cache_lock:
+            if _cache["data"]:
+                return _cache["data"]
+        return None
+    # We'll do the refresh
+    _warming.set()
+    try:
+        fresh = _fetch_all_sources()
+        with _cache_lock:
+            _cache["data"] = fresh
+            _cache["ts"] = _time.time()
+        return fresh
+    finally:
+        _warming.clear()
 
 
 def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
@@ -620,6 +653,16 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
     Serve from cache, apply filters per-request.
     """
     cached = _get_cached()
+    if not cached:
+        return {
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "total_fetched": 0,
+            "total_unique": 0,
+            "source_counts": {},
+            "category_counts": {},
+            "articles": [],
+            "status": "warming",
+        }
     import copy
     unique = copy.deepcopy(cached["all_unique"])
 
