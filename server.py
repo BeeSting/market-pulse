@@ -44,61 +44,14 @@ WATCHLIST_TICKERS = [
     "SPY","QQQ","DIA","VIXY"
 ]
 
-CRYPTO_SYMBOLS = ["BTCUSD", "ETHUSD"]
+CRYPTO_SYMBOLS = ["BTCUSD", "ETHUSD", "SOLUSD", "BNBUSD", "XRPUSD", "ADAUSD", "DOGEUSD", "AVAXUSD"]
 
 ALL_TICKERS = list(dict.fromkeys(PORTFOLIO_TICKERS + WATCHLIST_TICKERS))
 
 TOP_10 = ["SLV", "IREN", "CIFR", "NBIS", "SOFI", "IAU", "APLD", "RKLB", "TMDX", "WULF"]
 
 
-# ── Hardcoded Fallback Data ───────────────────────────────
-CONGRESS_TRADES_DATA = [
-    {"firstName": "Tim", "lastName": "Moore", "office": "House", "symbol": "COIN", "transactionDate": "2026-02-18", "transactionType": "Sale", "amount": "$1,001 - $15,000", "assetDescription": "Coinbase Global Inc"},
-    {"firstName": "Cleo", "lastName": "Fields", "office": "Senate", "symbol": "AAPL", "transactionDate": "2026-02-12", "transactionType": "Purchase", "amount": "$1,001 - $15,000", "assetDescription": "Apple Inc."},
-    {"firstName": "Jake", "lastName": "Auchincloss", "office": "House", "symbol": "STT", "transactionDate": "2026-02-17", "transactionType": "Sale", "amount": "$15,001 - $50,000", "assetDescription": "State Street Corporation"},
-    {"firstName": "Tim", "lastName": "Moore", "office": "House", "symbol": "DNUT", "transactionDate": "2026-02-12", "transactionType": "Purchase", "amount": "$1,001 - $15,000", "assetDescription": "Krispy Kreme Inc"},
-    {"firstName": "Marjorie", "lastName": "Taylor Greene", "office": "House", "symbol": "NVDA", "transactionDate": "2026-02-05", "transactionType": "Purchase", "amount": "$1,001 - $15,000", "assetDescription": "NVIDIA Corp"},
-    {"firstName": "Tommy", "lastName": "Tuberville", "office": "Senate", "symbol": "GOOGL", "transactionDate": "2026-02-03", "transactionType": "Purchase", "amount": "$15,001 - $50,000", "assetDescription": "Alphabet Inc."},
-    {"firstName": "Dan", "lastName": "Crenshaw", "office": "House", "symbol": "MSFT", "transactionDate": "2026-01-28", "transactionType": "Purchase", "amount": "$1,001 - $15,000", "assetDescription": "Microsoft Corp"},
-    {"firstName": "Nancy", "lastName": "Pelosi", "office": "House", "symbol": "CRM", "transactionDate": "2026-01-22", "transactionType": "Purchase", "amount": "$250,001 - $500,000", "assetDescription": "Salesforce Inc."},
-    {"firstName": "Ro", "lastName": "Khanna", "office": "House", "symbol": "PLTR", "transactionDate": "2026-01-20", "transactionType": "Sale", "amount": "$50,001 - $100,000", "assetDescription": "Palantir Technologies"},
-    {"firstName": "Josh", "lastName": "Gottheimer", "office": "House", "symbol": "META", "transactionDate": "2026-01-15", "transactionType": "Purchase", "amount": "$15,001 - $50,000", "assetDescription": "Meta Platforms Inc."},
-]
-
-FALLBACK_EARNINGS = [
-    {"symbol": "SOFI", "date": "2026-04-28", "time": "bmo", "epsEstimated": 0.14, "revenueEstimated": 850000000},
-    {"symbol": "RKLB", "date": "2026-05-08", "time": "amc", "epsEstimated": -0.03, "revenueEstimated": 155000000},
-    {"symbol": "CIFR", "date": "2026-05-06", "time": "amc", "epsEstimated": 0.02, "revenueEstimated": 78000000},
-    {"symbol": "IREN", "date": "2026-05-15", "time": "bmo", "epsEstimated": 0.08, "revenueEstimated": 220000000},
-    {"symbol": "NBIS", "date": "2026-04-24", "time": "bmo", "epsEstimated": -0.38, "revenueEstimated": 310000000},
-    {"symbol": "WULF", "date": "2026-05-12", "time": "amc", "epsEstimated": 0.05, "revenueEstimated": 65000000},
-    {"symbol": "APLD", "date": "2026-04-10", "time": "amc", "epsEstimated": -0.15, "revenueEstimated": 95000000},
-    {"symbol": "TMDX", "date": "2026-05-01", "time": "bmo", "epsEstimated": 0.42, "revenueEstimated": 130000000},
-    {"symbol": "COIN", "date": "2026-05-08", "time": "amc", "epsEstimated": 2.15, "revenueEstimated": 2100000000},
-    {"symbol": "NVDA", "date": "2026-05-28", "time": "amc", "epsEstimated": 0.92, "revenueEstimated": 51000000000},
-    {"symbol": "PLTR", "date": "2026-05-05", "time": "amc", "epsEstimated": 0.13, "revenueEstimated": 920000000},
-    {"symbol": "GOOGL", "date": "2026-04-22", "time": "amc", "epsEstimated": 2.12, "revenueEstimated": 106000000000},
-]
-
-FALLBACK_INSIDER = {
-    "SOFI": [
-        {"symbol": "SOFI", "transactionDate": "2026-02-15", "reportingName": "Steven Freiberg", "typeOfOwner": "director", "transactionType": "S-Sale", "securitiesTransacted": 94225, "price": 20.27, "securitiesOwned": 150000},
-        {"symbol": "SOFI", "transactionDate": "2026-01-28", "reportingName": "Anthony Noto", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 50000, "price": 18.50, "securitiesOwned": 2500000},
-    ],
-    "IREN": [
-        {"symbol": "IREN", "transactionDate": "2026-02-10", "reportingName": "Daniel Roberts", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 200000, "price": 22.15, "securitiesOwned": 1800000},
-    ],
-    "NVDA": [
-        {"symbol": "NVDA", "transactionDate": "2026-02-20", "reportingName": "Jensen Huang", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 240000, "price": 178.50, "securitiesOwned": 86400000},
-        {"symbol": "NVDA", "transactionDate": "2026-02-05", "reportingName": "Colette Kress", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 28571, "price": 185.20, "securitiesOwned": 450000},
-    ],
-    "RKLB": [
-        {"symbol": "RKLB", "transactionDate": "2026-02-12", "reportingName": "Peter Beck", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 100000, "price": 45.80, "securitiesOwned": 52000000},
-    ],
-    "COIN": [
-        {"symbol": "COIN", "transactionDate": "2026-02-18", "reportingName": "Brian Armstrong", "typeOfOwner": "officer", "transactionType": "S-Sale", "securitiesTransacted": 15000, "price": 312.50, "securitiesOwned": 64000000},
-    ],
-}
+# ── No hardcoded fallback data — all API-only ────────────
 
 
 # ── Quote Fetchers ────────────────────────────────────────
@@ -579,21 +532,45 @@ def api_analyst_targets():
         return jsonify({"error": str(e)}), 502
 
 
-# ── Congress Trades ───────────────────────────────────────
+# ── Congress Trades (Unusual Whales — live) ───────────────
 @app.route("/api/congress-trades")
 def api_congress_trades():
+    """Redirect to UW live congress trades endpoint."""
     try:
+        url = "https://api.unusualwhales.com/api/congress/recent-trades"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        trades = raw.get("data", [])[:20]
+        cleaned = []
+        for t in trades:
+            cleaned.append({
+                "firstName": (t.get("name", "") or "").split()[0] if t.get("name") else "",
+                "lastName": " ".join((t.get("name", "") or "").split()[1:]) if t.get("name") else "",
+                "office": (t.get("member_type", "") or "").title(),
+                "symbol": t.get("ticker", "") or "",
+                "transactionDate": t.get("transaction_date", ""),
+                "transactionType": t.get("txn_type", ""),
+                "amount": t.get("amounts", ""),
+                "assetDescription": t.get("issuer", "") or t.get("notes", ""),
+                "filedDate": t.get("filed_at_date", ""),
+            })
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
-            "trades": CONGRESS_TRADES_DATA,
+            "trades": cleaned,
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
-        return jsonify({"error": str(e)}), 502
+        return jsonify({"error": str(e), "trades": []}), 200, {"Cache-Control": "no-cache"}
 
 
 # ── Earnings Calendar ─────────────────────────────────────
 @app.route("/api/earnings-calendar")
 def api_earnings_calendar():
+    """Fetch upcoming earnings via FMP confirmed + analyst estimates for portfolio tickers."""
     try:
         today = datetime.date.today()
         four_months = today + datetime.timedelta(days=120)
@@ -606,38 +583,56 @@ def api_earnings_calendar():
             entry for entry in (data if isinstance(data, list) else [])
             if entry.get("symbol", "") in all_syms
         ]
-        # Fall back to hardcoded data if API returned nothing useful
+        # If confirmed is empty, try non-confirmed
         if not filtered:
-            filtered = FALLBACK_EARNINGS
+            url2 = f"https://financialmodelingprep.com/stable/earning-calendar?from={today}&to={four_months}&apikey={FMP_KEY}"
+            req2 = urllib.request.Request(url2, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req2, timeout=20) as resp2:
+                data2 = json.loads(resp2.read().decode())
+            filtered = [
+                entry for entry in (data2 if isinstance(data2, list) else [])
+                if entry.get("symbol", "") in all_syms
+            ]
+        # If still empty, build from analyst estimates for top holdings
+        if not filtered:
+            def _fetch_est(ticker):
+                try:
+                    est_url = f"https://financialmodelingprep.com/stable/analyst-estimates?symbol={ticker}&period=quarter&limit=1&apikey={FMP_KEY}"
+                    req = urllib.request.Request(est_url, headers={"User-Agent": "MarketPulse/1.0"})
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        est = json.loads(resp.read().decode())
+                    if isinstance(est, list) and est:
+                        e = est[0]
+                        return {
+                            "symbol": ticker,
+                            "date": e.get("date", ""),
+                            "epsEstimated": e.get("epsAvg"),
+                            "revenueEstimated": e.get("revenueAvg"),
+                        }
+                except Exception:
+                    pass
+                return None
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+                futures = {pool.submit(_fetch_est, t): t for t in TOP_10}
+                for f in concurrent.futures.as_completed(futures, timeout=15):
+                    try:
+                        r = f.result()
+                        if r:
+                            filtered.append(r)
+                    except Exception:
+                        pass
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "earnings": filtered,
             "count": len(filtered),
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
-        # On any error also return fallback so the section still renders
-        return jsonify({
-            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
-            "earnings": FALLBACK_EARNINGS,
-            "count": len(FALLBACK_EARNINGS),
-        }), 200, {"Cache-Control": "no-cache"}
+        return jsonify({"error": str(e), "earnings": [], "count": 0}), 200, {"Cache-Control": "no-cache"}
 
 
 # ── Market Movers ─────────────────────────────────────────
 
-# High-volume stocks fallback (well-known high-volume names)
-FALLBACK_MOST_ACTIVE = [
-    {"symbol": "NVDA", "name": "NVIDIA Corp", "price": 0, "change": 0, "changesPercentage": 0, "volume": 350000000},
-    {"symbol": "TSLA", "name": "Tesla Inc", "price": 0, "change": 0, "changesPercentage": 0, "volume": 120000000},
-    {"symbol": "AAPL", "name": "Apple Inc", "price": 0, "change": 0, "changesPercentage": 0, "volume": 80000000},
-    {"symbol": "PLTR", "name": "Palantir Technologies", "price": 0, "change": 0, "changesPercentage": 0, "volume": 78000000},
-    {"symbol": "SOFI", "name": "SoFi Technologies", "price": 0, "change": 0, "changesPercentage": 0, "volume": 65000000},
-    {"symbol": "AMZN", "name": "Amazon.com Inc", "price": 0, "change": 0, "changesPercentage": 0, "volume": 55000000},
-    {"symbol": "AMD", "name": "Advanced Micro Devices", "price": 0, "change": 0, "changesPercentage": 0, "volume": 52000000},
-    {"symbol": "BAC", "name": "Bank of America Corp", "price": 0, "change": 0, "changesPercentage": 0, "volume": 48000000},
-    {"symbol": "META", "name": "Meta Platforms Inc", "price": 0, "change": 0, "changesPercentage": 0, "volume": 40000000},
-    {"symbol": "MSFT", "name": "Microsoft Corp", "price": 0, "change": 0, "changesPercentage": 0, "volume": 35000000},
-]
+
 
 @app.route("/api/market-movers")
 def api_market_movers():
@@ -692,9 +687,9 @@ def api_market_movers():
             try:
                 most_active = f_active.result(timeout=25)
                 if not most_active:
-                    most_active = FALLBACK_MOST_ACTIVE
+                    most_active = []
             except Exception:
-                most_active = FALLBACK_MOST_ACTIVE
+                most_active = []
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "gainers": gainers,
@@ -1235,6 +1230,53 @@ def api_ticker_flow(ticker):
         return jsonify({"error": str(e), "ticker": ticker.upper(), "count": 0, "flow": []}), 200, {"Cache-Control": "no-cache"}
 
 
+# ── DCF Valuations (FMP) ──────────────────────────────────
+@app.route("/api/dcf")
+def api_dcf():
+    """Fetch DCF valuations for TOP_10 tickers from FMP."""
+    tickers_param = request.args.get("tickers", "")
+    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()] if tickers_param else TOP_10
+
+    def _fetch_dcf(ticker):
+        try:
+            url = f"https://financialmodelingprep.com/stable/discounted-cash-flow?symbol={ticker}&apikey={FMP_KEY}"
+            req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+            if isinstance(data, list) and data:
+                d = data[0]
+                dcf_val = d.get("dcf", 0)
+                stock_price = d.get("Stock Price", 0)
+                upside = round((dcf_val - stock_price) / stock_price * 100, 1) if stock_price else 0
+                return ticker, {
+                    "dcf": round(dcf_val, 2),
+                    "stockPrice": stock_price,
+                    "upside": upside,
+                    "date": d.get("date", ""),
+                }
+        except Exception:
+            pass
+        return ticker, None
+
+    try:
+        dcf_data = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(_fetch_dcf, t): t for t in tickers}
+            for future in concurrent.futures.as_completed(futures, timeout=20):
+                try:
+                    ticker, data = future.result()
+                    if data:
+                        dcf_data[ticker] = data
+                except Exception:
+                    pass
+        return jsonify({
+            "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "dcf": dcf_data,
+        }), 200, {"Cache-Control": "no-cache"}
+    except Exception as e:
+        return jsonify({"error": str(e), "dcf": {}}), 200, {"Cache-Control": "no-cache"}
+
+
 # ── Sector Performance ───────────────────────────────────
 @app.route("/api/sector-performance")
 def api_sector_performance():
@@ -1288,43 +1330,59 @@ def api_stock_screener():
         return jsonify({"error": str(e)}), 502
 
 
-# ── Insider Transactions ──────────────────────────────────
+# ── Insider Transactions (Unusual Whales — real SEC Form 4) ──
 @app.route("/api/insider")
 def api_insider():
-    def _fetch_insider(ticker):
-        result = []
-        try:
-            url = f"https://financialmodelingprep.com/stable/insider-trading?symbol={ticker}&limit=5&apikey={FMP_KEY}"
-            req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode())
-            result = data if isinstance(data, list) else []
-        except urllib.error.HTTPError:
-            pass  # 404 etc — fall through to fallback
-        except Exception:
-            pass
-        # Use fallback data if API returned empty or errored
-        if not result:
-            result = FALLBACK_INSIDER.get(ticker, [])
-        return ticker, result
-
+    """Fetch recent SEC Form 4 insider transactions from Unusual Whales."""
     try:
+        url = "https://api.unusualwhales.com/api/insider/transactions?limit=50"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {UW_KEY}",
+            "Accept": "application/json",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = json.loads(resp.read().decode())
+        transactions = raw.get("data", [])
+
+        # Organize by ticker for the frontend
         insider = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = {executor.submit(_fetch_insider, t): t for t in TOP_10}
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    ticker, data = future.result(timeout=20)
-                    insider[ticker] = data
-                except Exception as e:
-                    t = futures[future]
-                    insider[t] = FALLBACK_INSIDER.get(t, [])
+        all_portfolio = set(PORTFOLIO_TICKERS + WATCHLIST_TICKERS + TOP_10)
+        for t in transactions:
+            sym = t.get("ticker", "")
+            if not sym:
+                continue
+            amount = t.get("amount", 0) or 0
+            price = float(t.get("price", 0) or 0)
+            abs_amount = abs(amount)
+            is_buy = amount > 0
+            owner_type = "officer" if t.get("is_officer") else "director" if t.get("is_director") else "10% owner" if t.get("is_ten_percent_owner") else ""
+            title = t.get("officer_title", "") or owner_type
+
+            entry = {
+                "symbol": sym,
+                "transactionDate": t.get("transaction_date", ""),
+                "filingDate": t.get("filing_date", ""),
+                "reportingName": (t.get("owner_name", "") or "").title(),
+                "typeOfOwner": title,
+                "transactionType": "P-Purchase" if is_buy else "S-Sale",
+                "securitiesTransacted": abs_amount,
+                "price": price,
+                "securitiesOwned": t.get("shares_owned_after", 0) or 0,
+                "transactionCode": t.get("transaction_code", ""),
+                "is10b51": t.get("is_10b5_1", False),
+                "sector": t.get("sector", ""),
+            }
+            if sym not in insider:
+                insider[sym] = []
+            insider[sym].append(entry)
+
         return jsonify({
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "insider": insider,
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
-        return jsonify({"error": str(e)}), 502
+        return jsonify({"error": str(e), "insider": {}}), 200, {"Cache-Control": "no-cache"}
 
 
 # ── Enhanced News with Sentiment Insights (Massive/Polygon) ──

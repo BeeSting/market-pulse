@@ -1033,6 +1033,7 @@ section:not(.hero-section):not(.kpi-ticker-section) {
       <div class="kpi-ticker-item"><span class="ticker-sym">BTC</span><span class="ticker-price" id="t-btc-p">—</span><span class="ticker-change flat" id="t-btc-c">—</span></div>
       <span class="kpi-ticker-sep">·</span>
       <div class="kpi-ticker-item"><span class="ticker-sym">ETH</span><span class="ticker-price" id="t-eth-p">—</span><span class="ticker-change flat" id="t-eth-c">—</span></div>
+      <div class="kpi-ticker-item"><span class="ticker-sym">SOL</span><span class="ticker-price" id="t-sol-p">—</span><span class="ticker-change flat" id="t-sol-c">—</span></div>
       <span class="kpi-ticker-sep">·</span>
       <div class="kpi-ticker-item"><span class="ticker-sym">Gold</span><span class="ticker-price" id="t-gold-p">—</span><span class="ticker-change flat" id="t-gold-c">—</span></div>
       <span class="kpi-ticker-sep">·</span>
@@ -1237,7 +1238,7 @@ section:not(.hero-section):not(.kpi-ticker-section) {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Cryptocurrency
       </h3>
-      <div class="asset-grid" id="crypto-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="asset-grid" id="crypto-grid">
         <div class="asset-card">
           <div class="asset-header"><div><div class="asset-sym">BTC</div><div class="asset-name">Bitcoin</div></div><div class="asset-icon">₿</div></div>
           <div class="asset-price" id="btc-price">—</div>
@@ -1248,6 +1249,42 @@ section:not(.hero-section):not(.kpi-ticker-section) {
           <div class="asset-header"><div><div class="asset-sym">ETH</div><div class="asset-name">Ethereum</div></div><div class="asset-icon" style="font-size:1.1rem;">Ξ</div></div>
           <div class="asset-price" id="eth-price">—</div>
           <div class="asset-change flat" id="eth-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">SOL</div><div class="asset-name">Solana</div></div><div class="asset-icon" style="font-size:0.9rem;">◎</div></div>
+          <div class="asset-price" id="sol-price">—</div>
+          <div class="asset-change flat" id="sol-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">BNB</div><div class="asset-name">BNB</div></div><div class="asset-icon" style="font-size:0.9rem;">⬡</div></div>
+          <div class="asset-price" id="bnb-price">—</div>
+          <div class="asset-change flat" id="bnb-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">XRP</div><div class="asset-name">XRP</div></div><div class="asset-icon" style="font-size:0.9rem;">✕</div></div>
+          <div class="asset-price" id="xrp-price">—</div>
+          <div class="asset-change flat" id="xrp-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">ADA</div><div class="asset-name">Cardano</div></div><div class="asset-icon" style="font-size:0.9rem;">₳</div></div>
+          <div class="asset-price" id="ada-price">—</div>
+          <div class="asset-change flat" id="ada-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">DOGE</div><div class="asset-name">Dogecoin</div></div><div class="asset-icon" style="font-size:0.9rem;">Ð</div></div>
+          <div class="asset-price" id="doge-price">—</div>
+          <div class="asset-change flat" id="doge-change">—</div>
+          <div class="asset-unit">USD</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">AVAX</div><div class="asset-name">Avalanche</div></div><div class="asset-icon" style="font-size:0.9rem;">▲</div></div>
+          <div class="asset-price" id="avax-price">—</div>
+          <div class="asset-change flat" id="avax-change">—</div>
           <div class="asset-unit">USD</div>
         </div>
       </div>
@@ -3753,6 +3790,25 @@ function enrichAlphaWithTechnicals(techData) {
   renderAlphaTable();
 }
 
+// DCF Valuations
+let _liveDCF = null;
+function enrichAlphaWithDCF(dcfData) {
+  if (dcfData && dcfData.dcf) _liveDCF = dcfData.dcf;
+  renderAlphaTable();
+}
+
+function buildDCFSubItems(ticker) {
+  if (!_liveDCF) return null;
+  const d = _liveDCF[ticker];
+  if (!d) return null;
+  const rows = [];
+  rows.push({label:'DCF Fair Value', value:'$'+fmt(d.dcf)});
+  rows.push({label:'Current Price', value:'$'+fmt(d.stockPrice)});
+  const cls = d.upside > 0 ? 'text-green' : 'text-red';
+  rows.push({label:'DCF Upside', value:(d.upside > 0 ? '+' : '')+d.upside+'%', cls});
+  return rows;
+}
+
 function buildTechnicalSubItems(ticker) {
   if (!_liveTechnicals) return null;
   const t = _liveTechnicals[ticker];
@@ -3969,6 +4025,7 @@ function renderAlphaTable() {
     const liveFundSub = buildFundamentalSubItems(s.ticker);
     const liveAnalyst = buildAnalystSubItems(s.ticker);
     const liveTechSub = buildTechnicalSubItems(s.ticker);
+    const liveDCFSub = buildDCFSubItems(s.ticker);
     const sbHTML = pillarKeys.map((k, pi) => {
       const v = s.pillars[k] || 0;
       const d = (s.pillarDeltas && s.pillarDeltas[k]) || 0;
@@ -3980,8 +4037,9 @@ function renderAlphaTable() {
       let detailRows = [];
       if (k === 'fundamentals' && liveFundSub && liveFundSub.fundamentals) {
         detailRows = liveFundSub.fundamentals;
-      } else if (k === 'valuation' && liveFundSub && liveFundSub.valuation) {
-        detailRows = liveFundSub.valuation;
+      } else if (k === 'valuation') {
+        if (liveFundSub && liveFundSub.valuation) detailRows = liveFundSub.valuation;
+        if (liveDCFSub) detailRows = detailRows.concat(liveDCFSub);
       } else if (k === 'technicals' && liveTechSub) {
         detailRows = liveTechSub;
       } else if (k === 'sentiment' && liveAnalyst) {
@@ -4270,17 +4328,11 @@ function renderDarkPool(data) {
 /* ==========================================
    CONGRESS TRADES RENDERING
    ========================================== */
-const CONGRESS_FALLBACK = [
-  {firstName:'Nancy',lastName:'Pelosi',office:'House',symbol:'NVDA',transactionType:'Buy',transactionDate:'2026-02-15',filedDate:'2026-02-28',amount:'$250,001 - $500,000',assetDescription:'Common Stock'},
-  {firstName:'Dan',lastName:'Crenshaw',office:'House',symbol:'XOM',transactionType:'Buy',transactionDate:'2026-02-10',filedDate:'2026-02-24',amount:'$15,001 - $50,000',assetDescription:'Common Stock'},
-  {firstName:'Tommy',lastName:'Tuberville',office:'Senate',symbol:'LMT',transactionType:'Sell',transactionDate:'2026-02-08',filedDate:'2026-02-20',amount:'$50,001 - $100,000',assetDescription:'Common Stock'},
-];
-
 function renderCongressTrades(data) {
   const tbody = document.getElementById('congress-trades-tbody');
   if (!tbody) return;
-  let trades = CONGRESS_FALLBACK;
-  if (data && data.trades && data.trades.length >= 3) {
+  let trades = [];
+  if (data && data.trades && data.trades.length > 0) {
     trades = data.trades;
   }
   tbody.innerHTML = '';
@@ -4310,7 +4362,7 @@ function renderCongressTrades(data) {
    API DATA LOADING
    ========================================== */
 async function loadAllData() {
-  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment'];
+  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment','dcf'];
   const results = {};
   await Promise.allSettled(endpoints.map(async ep => {
     try {
@@ -4357,6 +4409,12 @@ function renderQuotes(data) {
   // Crypto
   set('btc','BTC','',1);
   set('eth','ETH','',1);
+  set('sol','SOL','',1);
+  set('bnb','BNB','',1);
+  set('xrp','XRP','',1);
+  set('ada','ADA','',1);
+  set('doge','DOGE','',1);
+  set('avax','AVAX','',1);
 
   // Indices
   function setIndex(prefix, sym) {
@@ -4399,6 +4457,7 @@ function renderQuotes(data) {
   setTicker('t-vix-p','t-vix-c','VIX',1);
   setTicker('t-btc-p','t-btc-c','BTC',1);
   setTicker('t-eth-p','t-eth-c','ETH',1);
+  setTicker('t-sol-p','t-sol-c','SOL',1);
   setTicker('t-gold-p','t-gold-c','GOLD',1);
   setTicker('t-silver-p','t-silver-c','SILVER',1);
   setTicker('t-wti-p','t-wti-c','WTI',1);
@@ -4478,20 +4537,11 @@ function renderFearGreed(data) {
 /* ==========================================
    POLYMARKET RENDERING
    ========================================== */
-const POLY_FALLBACK = [
-  {title:"Will S&P 500 drop more than 3% this week?", yes:84, no:16, vol:'$2.4M', status:'LIKELY YES', color:'red'},
-  {title:"Will WTI crude oil exceed $95/barrel by March 15?", yes:61, no:39, vol:'$1.8M', status:'LIKELY YES', color:'amber'},
-  {title:"Will the Federal Reserve cut rates at March FOMC?", yes:11, no:89, vol:'$5.2M', status:'UNLIKELY', color:'blue'},
-  {title:"Will Iran and the US reach a ceasefire agreement in March?", yes:38, no:62, vol:'$890K', status:'LEAN NO', color:'amber'},
-  {title:"Will Gold hit $3,500/oz before April?", yes:52, no:48, vol:'$1.1M', status:'COIN FLIP', color:'amber'},
-  {title:"Will NVIDIA remain the world's most valuable company through Q1?", yes:90, no:10, vol:'$3.7M', status:'VERY LIKELY', color:'green'},
-];
-
 function renderPolymarket(data) {
   const grid = document.getElementById('poly-live-grid');
   if (!grid) return;
 
-  let markets = POLY_FALLBACK;
+  let markets = [];
   if (data && data.markets) {
     try {
       const keys = Object.keys(data.markets);
@@ -4551,19 +4601,10 @@ function renderPolymarket(data) {
 /* ==========================================
    SENTIMENT RENDERING
    ========================================== */
-const SENTIMENT_FALLBACK = [
-  {sym:'IREN', bull:62, bear:24, neut:14, postsCount:1840, trend:'↑'},
-  {sym:'SLV', bull:78, bear:8, neut:14, postsCount:3200, trend:'↑'},
-  {sym:'SOFI', bull:55, bear:28, neut:17, postsCount:4100, trend:'→'},
-  {sym:'NVDA', bull:84, bear:10, neut:6, postsCount:12400, trend:'↑'},
-  {sym:'IAU', bull:74, bear:12, neut:14, postsCount:2800, trend:'↑'},
-  {sym:'PLTR', bull:72, bear:15, neut:13, postsCount:5600, trend:'↑'},
-];
-
 function renderSentiment(data) {
   const grid = document.getElementById('sentiment-grid');
   if (!grid) return;
-  let items = SENTIMENT_FALLBACK;
+  let items = [];
   if (data && data.sentiment) {
     try {
       const live = [];
@@ -4621,35 +4662,37 @@ function renderInsider(data) {
   if (data && data.insider) {
     try {
       Object.entries(data.insider).forEach(([sym, arr]) => {
-        if (!arr) return;
-        arr.slice(0,5).forEach(t => trades.push({...t, ticker:sym}));
+        if (!arr || !Array.isArray(arr)) return;
+        arr.slice(0,5).forEach(t => trades.push({...t, ticker: t.symbol || sym}));
       });
-    } catch(e) {}
+    } catch(e) { console.warn('Insider parse error:', e); }
   }
 
-  // Sort by transaction date descending
-  trades.sort((a,b) => (b.transactionDate||'').localeCompare(a.transactionDate||''));
+  // Sort by transaction date descending, then filing date
+  trades.sort((a,b) => (b.transactionDate||b.filingDate||'').localeCompare(a.transactionDate||a.filingDate||''));
 
   if (!trades.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-sm);">Loading insider trades...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-sm);">No recent insider transactions</td></tr>';
     return;
   }
 
   tbody.innerHTML = '';
-  trades.slice(0,20).forEach(t => {
-    const isBuy = t.transactionType && (t.transactionType.includes('P-Purchase') || t.transactionType.toLowerCase().includes('buy'));
-    const value = (t.securitiesTransacted || 0) * (t.price || 0);
+  trades.slice(0,25).forEach(t => {
+    const isBuy = t.transactionType && (t.transactionType.includes('P-Purchase') || t.transactionType.toLowerCase().includes('buy') || t.transactionType.includes('Purchase'));
+    const shares = Math.abs(t.securitiesTransacted || 0);
+    const price = parseFloat(t.price) || 0;
+    const value = shares * price;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="fw-600">${t.ticker||'—'}</td>
-      <td style="color:var(--color-text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;">${sanitizeSource(t.reportingName)||'—'}</td>
+      <td style="color:var(--color-text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sanitizeSource(t.reportingName)||'—'}</td>
       <td><span class="badge ${isBuy?'badge-green':'badge-red'}">${isBuy?'Buy':'Sell'}</span></td>
       <td style="color:var(--color-text-muted);">${t.transactionDate||'—'}</td>
       <td style="color:var(--color-text-faint);">${t.filingDate||'—'}</td>
-      <td class="text-right tabular">${(t.securitiesTransacted||0).toLocaleString()}</td>
-      <td class="text-right tabular">${t.price ? '$'+fmt(t.price) : '—'}</td>
+      <td class="text-right tabular">${shares.toLocaleString()}</td>
+      <td class="text-right tabular">${price ? '$'+fmt(price) : '—'}</td>
       <td class="text-right tabular ${isBuy?'text-green':'text-red'}">${value > 0 ? fmtM(value) : '—'}</td>
-      <td style="color:var(--color-text-faint);">${t.typeOfOwner||'—'}</td>
+      <td style="color:var(--color-text-faint);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.typeOfOwner||'—'}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -4661,30 +4704,6 @@ function renderInsider(data) {
 function renderMovers(data) {
   if (!data || !data.gainers) {
     // Fallback with static data
-    const FALLBACK_GAINERS = [
-      {symbol:'OXY',changesPercentage:6.1,price:52.3,volume:18e6},
-      {symbol:'CVX',changesPercentage:4.8,price:158.4,volume:12e6},
-      {symbol:'XLE',changesPercentage:5.2,price:92.15,volume:24e6},
-      {symbol:'LMT',changesPercentage:3.8,price:498.7,volume:4e6},
-      {symbol:'RTX',changesPercentage:4.2,price:114.2,volume:8e6},
-      {symbol:'IAU',changesPercentage:3.8,price:30.86,volume:15e6},
-      {symbol:'SLV',changesPercentage:4.1,price:30.92,volume:22e6},
-    ];
-    const FALLBACK_LOSERS = [
-      {symbol:'IREN',changesPercentage:-12.1,price:23.2,volume:9e6},
-      {symbol:'CIFR',changesPercentage:-10.8,price:4.92,volume:18e6},
-      {symbol:'WULF',changesPercentage:-14.2,price:4.60,volume:12e6},
-      {symbol:'BITF',changesPercentage:-11.0,price:2.82,volume:14e6},
-      {symbol:'HUT',changesPercentage:-10.5,price:10.40,volume:7e6},
-      {symbol:'CLSK',changesPercentage:-7.2,price:11.40,volume:6e6},
-    ];
-    const FALLBACK_ACTIVE = [
-      {symbol:'NVDA',changesPercentage:-3.1,price:875.4,volume:58e6},
-      {symbol:'IREN',changesPercentage:-12.1,price:23.2,volume:42e6},
-      {symbol:'SOFI',changesPercentage:-2.8,price:8.96,volume:35e6},
-      {symbol:'PLTR',changesPercentage:2.4,price:82.4,volume:28e6},
-      {symbol:'HOOD',changesPercentage:-3.5,price:20.6,volume:24e6},
-    ];
     function fillFallback(id, items) {
       const tbody = document.getElementById(id);
       if (!tbody) return;
@@ -4695,9 +4714,7 @@ function renderMovers(data) {
         tbody.appendChild(tr);
       });
     }
-    fillFallback('gainers-body', FALLBACK_GAINERS);
-    fillFallback('losers-body', FALLBACK_LOSERS);
-    fillFallback('active-body', FALLBACK_ACTIVE);
+    // No fallback data — API only
     return;
   }
   function fillBody(id, items, isVolume) {
@@ -4729,18 +4746,7 @@ const PORTFOLIO_TICKERS = new Set(PORTFOLIO_DATA.map(s => s.ticker));
 function renderEarnings(data) {
   const tbody = document.getElementById('earnings-tbody');
   if (!tbody) return;
-  const FALLBACK_EARNINGS = [
-    {date:'2026-03-06',symbol:'IREN',epsEstimated:0.34,revenueEstimated:195e6,time:'AMC'},
-    {date:'2026-03-10',symbol:'CIFR',epsEstimated:0.09,revenueEstimated:98e6,time:'BMO'},
-    {date:'2026-03-12',symbol:'SOFI',epsEstimated:0.14,revenueEstimated:780e6,time:'AMC'},
-    {date:'2026-03-15',symbol:'NVDA',epsEstimated:0.89,revenueEstimated:43e9,time:'AMC'},
-    {date:'2026-03-18',symbol:'CLSK',epsEstimated:0.32,revenueEstimated:275e6,time:'BMO'},
-    {date:'2026-03-20',symbol:'NET',epsEstimated:0.16,revenueEstimated:472e6,time:'AMC'},
-    {date:'2026-03-25',symbol:'SHOP',epsEstimated:1.42,revenueEstimated:2.9e9,time:'BMO'},
-    {date:'2026-03-28',symbol:'NU',epsEstimated:0.12,revenueEstimated:3.4e9,time:'AMC'},
-  ];
-
-  let earnings = FALLBACK_EARNINGS;
+  let earnings = [];
   if (data && data.earnings && data.earnings.length) {
     earnings = data.earnings.slice(0,20);
   }
@@ -5005,6 +5011,7 @@ async function refreshAll() {
     renderEarnings(data['earnings-calendar']);
     renderMacro(data.macro);
     enrichAlphaWithFundamentals(data['fundamentals'], data['analyst-ratings']);
+    enrichAlphaWithDCF(data['dcf']);
     renderMarketTide(data['market-tide']);
     renderOptionsFlow(data['options-flow']);
     renderDarkPool(data['dark-pool']);
