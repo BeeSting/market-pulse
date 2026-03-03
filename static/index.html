@@ -4437,7 +4437,9 @@ const INSIDER_FALLBACK = [
 function renderInsider(data) {
   const tbody = document.getElementById('insider-tbody');
   if (!tbody) return;
-  let trades = INSIDER_FALLBACK;
+
+  // Start with fallback data
+  let trades = [...INSIDER_FALLBACK];
 
   if (data && data.insider) {
     try {
@@ -4446,9 +4448,27 @@ function renderInsider(data) {
         if (!arr) return;
         arr.slice(0,3).forEach(t => live.push({...t, ticker:sym}));
       });
-      if (live.length >= 3) trades = live;
+      if (live.length) {
+        // Merge: add live trades that aren't duplicates, then fill remaining from fallback
+        const seen = new Set();
+        const merged = [];
+        // Add live trades first
+        live.forEach(t => {
+          const key = `${t.ticker}-${t.reportingName}-${t.transactionDate}`;
+          if (!seen.has(key)) { seen.add(key); merged.push(t); }
+        });
+        // Then add fallback trades that don't overlap
+        INSIDER_FALLBACK.forEach(t => {
+          const key = `${t.ticker}-${t.reportingName}-${t.transactionDate}`;
+          if (!seen.has(key)) { seen.add(key); merged.push(t); }
+        });
+        trades = merged;
+      }
     } catch(e) {}
   }
+
+  // Sort by transaction date descending
+  trades.sort((a,b) => (b.transactionDate||'').localeCompare(a.transactionDate||''));
 
   tbody.innerHTML = '';
   trades.slice(0,20).forEach(t => {
