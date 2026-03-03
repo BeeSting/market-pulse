@@ -4314,7 +4314,7 @@ async function loadAllData() {
   const results = {};
   await Promise.allSettled(endpoints.map(async ep => {
     try {
-      const resp = await fetch(`${API_BASE}/api/${ep}`, {signal: AbortSignal.timeout(12000)});
+      const resp = await fetch(`${API_BASE}/api/${ep}`, {signal: AbortSignal.timeout(25000)});
       if (!resp.ok) throw new Error(resp.status);
       results[ep] = await resp.json();
     } catch(e) {
