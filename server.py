@@ -352,30 +352,27 @@ def api_quotes():
         except Exception as e:
             return jsonify({"error": str(e)}), 502
 
-    # Enrich with crypto (BTC, ETH), VIX, spot commodities, and major indices
-    try:
-        quotes.update(fetch_crypto())
-    except Exception:
-        pass  # non-fatal: stock data still available
-    try:
-        quotes.update(fetch_vix())
-    except Exception:
-        pass
-    try:
-        quotes.update(fetch_commodities())
-    except Exception:
-        pass
-    try:
-        quotes.update(fetch_indices())
-    except Exception:
-        pass
-
-    # Fear & Greed indexes (separate key, not in quotes)
+    # Enrich with crypto, VIX, commodities, indices, and fear & greed — in parallel
+    enrichments = {}
     fear_greed = {}
-    try:
-        fear_greed = fetch_fear_greed()
-    except Exception:
-        pass
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {
+            pool.submit(fetch_crypto): 'crypto',
+            pool.submit(fetch_vix): 'vix',
+            pool.submit(fetch_commodities): 'commodities',
+            pool.submit(fetch_indices): 'indices',
+            pool.submit(fetch_fear_greed): 'fear_greed',
+        }
+        for future in concurrent.futures.as_completed(futures, timeout=15):
+            key = futures[future]
+            try:
+                result = future.result()
+                if key == 'fear_greed':
+                    fear_greed = result
+                else:
+                    quotes.update(result)
+            except Exception:
+                pass  # non-fatal
 
     return jsonify({
         "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
