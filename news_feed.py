@@ -708,5 +708,5 @@ def _trigger_refresh():
     t.start()
 
 
-# Warm cache on startup
-_trigger_refresh()
+# Cache warms lazily on first API request (no import-time thread)
+# This avoids gunicorn fork issues with --preload
