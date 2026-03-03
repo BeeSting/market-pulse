@@ -236,9 +236,12 @@ def fetch_commodities():
         sym = q.get("symbol", "")
         if sym in COMMODITY_MAP:
             info = COMMODITY_MAP[sym]
-            prev = q.get("previousClose", 0) or 0
             price = q.get("price", 0) or 0
             chg = q.get("change", 0) or 0
+            # FMP commodity quotes don't include previousClose — derive it
+            prev = q.get("previousClose", 0) or 0
+            if not prev and price and chg:
+                prev = price - chg
             chg_pct = round((chg / prev * 100) if prev else 0, 2)
             quotes[info["display"]] = {
                 "symbol": info["display"],
@@ -247,10 +250,91 @@ def fetch_commodities():
                 "price": price,
                 "change": round(chg, 2),
                 "changesPercentage": chg_pct,
-                "previousClose": prev,
+                "previousClose": round(prev, 2),
                 "timestamp": q.get("timestamp", 0),
             }
     return quotes
+
+
+# ── Major Indices ─────────────────────────────────────────
+INDEX_MAP = {
+    "^GSPC": {"display": "SP500", "name": "S&P 500"},
+    "^DJI":  {"display": "DOW",   "name": "Dow Jones"},
+    "^IXIC": {"display": "NASDAQ","name": "NASDAQ Composite"},
+    "^RUT":  {"display": "RUT",   "name": "Russell 2000"},
+}
+
+def fetch_indices():
+    """Fetch major index quotes from FMP."""
+    symbols = "%2C".join(INDEX_MAP.keys()).replace("^", "%5E")
+    url = f"https://financialmodelingprep.com/stable/batch-quote?symbols=%5EGSPC,%5EDJI,%5EIXIC,%5ERUT&apikey={FMP_KEY}"
+    req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        raw = json.loads(resp.read().decode())
+    quotes = {}
+    for q in (raw if isinstance(raw, list) else []):
+        sym = q.get("symbol", "")
+        if sym in INDEX_MAP:
+            info = INDEX_MAP[sym]
+            quotes[info["display"]] = {
+                "symbol": info["display"],
+                "name": info["name"],
+                "price": q.get("price", 0),
+                "change": q.get("change", 0),
+                "changesPercentage": q.get("changePercentage", 0),
+                "previousClose": q.get("previousClose", 0),
+                "open": q.get("open", 0),
+                "dayHigh": q.get("dayHigh", 0),
+                "dayLow": q.get("dayLow", 0),
+                "timestamp": q.get("timestamp", 0),
+            }
+    return quotes
+
+
+# ── Fear & Greed Indexes ──────────────────────────────────
+def fetch_fear_greed():
+    """Fetch CNN Fear & Greed Index via RapidAPI + Crypto Fear & Greed from alternative.me."""
+    result = {}
+
+    # CNN Fear & Greed (market)
+    try:
+        url = "https://fear-and-greed-index.p.rapidapi.com/v1/fgi"
+        req = urllib.request.Request(url, headers={
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": "fear-and-greed-index.p.rapidapi.com",
+            "User-Agent": "MarketPulse/1.0",
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+        fgi = data.get("fgi", {})
+        now = fgi.get("now", {})
+        prev = fgi.get("previousClose", {})
+        result["market"] = {
+            "value": now.get("value", 0),
+            "label": now.get("valueText", "N/A"),
+            "previous": prev.get("value", 0),
+            "previousLabel": prev.get("valueText", "N/A"),
+            "oneWeekAgo": fgi.get("oneWeekAgo", {}).get("value", 0),
+            "oneMonthAgo": fgi.get("oneMonthAgo", {}).get("value", 0),
+        }
+    except Exception as e:
+        result["market"] = {"value": 0, "label": "N/A", "error": str(e)}
+
+    # Crypto Fear & Greed
+    try:
+        url = "https://api.alternative.me/fng/?limit=1"
+        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+        entry = data.get("data", [{}])[0]
+        result["crypto"] = {
+            "value": int(entry.get("value", 0)),
+            "label": entry.get("value_classification", "N/A"),
+        }
+    except Exception as e:
+        result["crypto"] = {"value": 0, "label": "N/A", "error": str(e)}
+
+    return result
 
 
 # ── API Routes ────────────────────────────────────────────
@@ -268,7 +352,7 @@ def api_quotes():
         except Exception as e:
             return jsonify({"error": str(e)}), 502
 
-    # Enrich with crypto (BTC, ETH), VIX, and spot commodity prices
+    # Enrich with crypto (BTC, ETH), VIX, spot commodities, and major indices
     try:
         quotes.update(fetch_crypto())
     except Exception:
@@ -281,12 +365,24 @@ def api_quotes():
         quotes.update(fetch_commodities())
     except Exception:
         pass
+    try:
+        quotes.update(fetch_indices())
+    except Exception:
+        pass
+
+    # Fear & Greed indexes (separate key, not in quotes)
+    fear_greed = {}
+    try:
+        fear_greed = fetch_fear_greed()
+    except Exception:
+        pass
 
     return jsonify({
         "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
         "source": source,
         "count": len(quotes),
         "quotes": quotes,
+        "fear_greed": fear_greed,
     }), 200, {"Cache-Control": "no-cache"}
 
 

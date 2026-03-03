@@ -408,6 +408,27 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
 .asset-change.up { color: var(--color-green); }
 .asset-change.down { color: var(--color-red); }
 .asset-unit { font-size: var(--text-xs); color: var(--color-text-faint); margin-top: var(--space-1); }
+.asset-grid-5 { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .asset-grid-5 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .asset-grid-5 { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { .asset-grid-5 { grid-template-columns: repeat(5, 1fr); } }
+
+/* Fear & Greed Gauges */
+.fg-gauges { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 640px) { .fg-gauges { grid-template-columns: 1fr 1fr; } }
+.fg-gauge-card { background: var(--color-surface-1); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5) var(--space-4) var(--space-4); text-align: center; }
+.fg-gauge-header { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin-bottom: var(--space-3); }
+.fg-gauge-wrap { position: relative; width: 180px; margin: 0 auto var(--space-3); }
+.fg-arc { width: 100%; height: auto; display: block; }
+.fg-value { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: var(--text-2xl); font-weight: 800; font-family: 'DM Sans', sans-serif; letter-spacing: -0.03em; }
+.fg-label { font-size: var(--text-sm); font-weight: 600; margin-top: -2px; }
+.fg-label.fear { color: var(--color-red); }
+.fg-label.greed { color: var(--color-green); }
+.fg-label.neutral { color: var(--color-amber); }
+.fg-label.extreme-fear { color: #ef4444; }
+.fg-label.extreme-greed { color: #22c55e; }
+.fg-meta { display: flex; gap: var(--space-4); justify-content: center; font-size: var(--text-xs); color: var(--color-text-faint); }
+.fg-meta b { color: var(--color-text-muted); font-weight: 600; }
 .asset-chart { height: 48px; margin-top: var(--space-3); }
 
 /* ==========================================
@@ -1070,71 +1091,139 @@ section:not(.hero-section):not(.kpi-ticker-section) {
 <hr class="section-divider">
 
 <!-- ============================================================
-     COMMODITIES & CRYPTO
+     MARKETS OVERVIEW — Indices, Commodities, Crypto, Fear & Greed
      ============================================================ -->
 <section id="commodities">
   <div class="container">
     <div class="section-header flex-between">
       <div>
-        <h2 class="section-title">Commodities &amp; Crypto</h2>
-        <p class="section-subtitle">Live prices: Gold &amp; Silver per troy oz · Crude oil per barrel · Crypto</p>
+        <h2 class="section-title">Markets Overview</h2>
+        <p class="section-subtitle">Live prices · Indices · Commodities (per oz/bbl) · Crypto · Sentiment gauges</p>
       </div>
     </div>
 
+    <!-- ── Fear & Greed Gauges ── -->
+    <div class="subsection">
+      <h3 class="subsection-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10H2A10 10 0 0 1 12 2z"/><path d="M12 12l3.5-6"/></svg>
+        Fear &amp; Greed
+      </h3>
+      <div class="fg-gauges">
+        <div class="fg-gauge-card" id="fg-market-card">
+          <div class="fg-gauge-header">Market Sentiment</div>
+          <div class="fg-gauge-wrap">
+            <svg class="fg-arc" viewBox="0 0 200 110">
+              <defs>
+                <linearGradient id="fg-grad-market" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ef4444"/>
+                  <stop offset="25%" stop-color="#f97316"/>
+                  <stop offset="50%" stop-color="#eab308"/>
+                  <stop offset="75%" stop-color="#84cc16"/>
+                  <stop offset="100%" stop-color="#22c55e"/>
+                </linearGradient>
+              </defs>
+              <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--color-surface-2)" stroke-width="14" stroke-linecap="round"/>
+              <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#fg-grad-market)" stroke-width="14" stroke-linecap="round" opacity="0.25"/>
+              <circle id="fg-market-dot" cx="20" cy="100" r="7" fill="#eab308"/>
+            </svg>
+            <div class="fg-value" id="fg-market-value">—</div>
+            <div class="fg-label" id="fg-market-label">Loading</div>
+          </div>
+          <div class="fg-meta">
+            <span>Prev: <b id="fg-market-prev">—</b></span>
+            <span>1W: <b id="fg-market-1w">—</b></span>
+            <span>1M: <b id="fg-market-1m">—</b></span>
+          </div>
+        </div>
+        <div class="fg-gauge-card" id="fg-crypto-card">
+          <div class="fg-gauge-header">Crypto Sentiment</div>
+          <div class="fg-gauge-wrap">
+            <svg class="fg-arc" viewBox="0 0 200 110">
+              <defs>
+                <linearGradient id="fg-grad-crypto" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ef4444"/>
+                  <stop offset="25%" stop-color="#f97316"/>
+                  <stop offset="50%" stop-color="#eab308"/>
+                  <stop offset="75%" stop-color="#84cc16"/>
+                  <stop offset="100%" stop-color="#22c55e"/>
+                </linearGradient>
+              </defs>
+              <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--color-surface-2)" stroke-width="14" stroke-linecap="round"/>
+              <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#fg-grad-crypto)" stroke-width="14" stroke-linecap="round" opacity="0.25"/>
+              <circle id="fg-crypto-dot" cx="20" cy="100" r="7" fill="#eab308"/>
+            </svg>
+            <div class="fg-value" id="fg-crypto-value">—</div>
+            <div class="fg-label" id="fg-crypto-label">Loading</div>
+          </div>
+          <div class="fg-meta">
+            <span>Source: alternative.me</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Major Indices ── -->
+    <div class="subsection">
+      <h3 class="subsection-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Indices &amp; Volatility
+      </h3>
+      <div class="asset-grid asset-grid-5" id="indices-grid">
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">S&amp;P 500</div><div class="asset-name">Large Cap</div></div><div class="asset-icon">📈</div></div>
+          <div class="asset-price" id="sp500-price">—</div>
+          <div class="asset-change flat" id="sp500-change">—</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">DOW</div><div class="asset-name">Dow Jones</div></div><div class="asset-icon">🏛️</div></div>
+          <div class="asset-price" id="dow-price">—</div>
+          <div class="asset-change flat" id="dow-change">—</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">NASDAQ</div><div class="asset-name">Tech Heavy</div></div><div class="asset-icon">💻</div></div>
+          <div class="asset-price" id="nasdaq-price">—</div>
+          <div class="asset-change flat" id="nasdaq-change">—</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">RUSSELL 2000</div><div class="asset-name">Small Cap</div></div><div class="asset-icon">🔹</div></div>
+          <div class="asset-price" id="rut-price">—</div>
+          <div class="asset-change flat" id="rut-change">—</div>
+        </div>
+        <div class="asset-card">
+          <div class="asset-header"><div><div class="asset-sym">VIX</div><div class="asset-name">Volatility Index</div></div><div class="asset-icon">⚡</div></div>
+          <div class="asset-price" id="vix-price">—</div>
+          <div class="asset-change flat" id="vix-change">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Commodities ── -->
     <div class="subsection">
       <h3 class="subsection-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         Commodities
       </h3>
       <div class="asset-grid" id="commodities-grid">
-        <!-- Gold -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">GOLD</div>
-              <div class="asset-name">Gold Spot</div>
-            </div>
-            <div class="asset-icon">🥇</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">GOLD</div><div class="asset-name">Gold Spot</div></div><div class="asset-icon">🥇</div></div>
           <div class="asset-price" id="gold-price">—</div>
           <div class="asset-change flat" id="gold-change">—</div>
           <div class="asset-unit">per troy oz</div>
         </div>
-        <!-- Silver -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">SILVER</div>
-              <div class="asset-name">Silver Spot</div>
-            </div>
-            <div class="asset-icon">🥈</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">SILVER</div><div class="asset-name">Silver Spot</div></div><div class="asset-icon">🥈</div></div>
           <div class="asset-price" id="silver-price">—</div>
           <div class="asset-change flat" id="silver-change">—</div>
           <div class="asset-unit">per troy oz</div>
         </div>
-        <!-- WTI -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">WTI</div>
-              <div class="asset-name">WTI Crude Oil</div>
-            </div>
-            <div class="asset-icon">🛢️</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">WTI</div><div class="asset-name">WTI Crude Oil</div></div><div class="asset-icon">🛢️</div></div>
           <div class="asset-price" id="wti-price">—</div>
           <div class="asset-change flat" id="wti-change">—</div>
           <div class="asset-unit">per barrel</div>
         </div>
-        <!-- Brent -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">BRENT</div>
-              <div class="asset-name">Brent Crude Oil</div>
-            </div>
-            <div class="asset-icon">⛽</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">BRENT</div><div class="asset-name">Brent Crude Oil</div></div><div class="asset-icon">⛽</div></div>
           <div class="asset-price" id="brent-price">—</div>
           <div class="asset-change flat" id="brent-change">—</div>
           <div class="asset-unit">per barrel</div>
@@ -1142,37 +1231,24 @@ section:not(.hero-section):not(.kpi-ticker-section) {
       </div>
     </div>
 
+    <!-- ── Cryptocurrency ── -->
     <div class="subsection">
       <h3 class="subsection-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Cryptocurrency
       </h3>
       <div class="asset-grid" id="crypto-grid" style="grid-template-columns: 1fr 1fr;">
-        <!-- BTC -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">BTC</div>
-              <div class="asset-name">Bitcoin</div>
-            </div>
-            <div class="asset-icon">₿</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">BTC</div><div class="asset-name">Bitcoin</div></div><div class="asset-icon">₿</div></div>
           <div class="asset-price" id="btc-price">—</div>
           <div class="asset-change flat" id="btc-change">—</div>
-          <div class="asset-unit">USD · Global reserve asset</div>
+          <div class="asset-unit">USD</div>
         </div>
-        <!-- ETH -->
         <div class="asset-card">
-          <div class="asset-header">
-            <div>
-              <div class="asset-sym">ETH</div>
-              <div class="asset-name">Ethereum</div>
-            </div>
-            <div class="asset-icon" style="font-size:1.1rem;">Ξ</div>
-          </div>
+          <div class="asset-header"><div><div class="asset-sym">ETH</div><div class="asset-name">Ethereum</div></div><div class="asset-icon" style="font-size:1.1rem;">Ξ</div></div>
           <div class="asset-price" id="eth-price">—</div>
           <div class="asset-change flat" id="eth-change">—</div>
-          <div class="asset-unit">USD · Smart contract platform</div>
+          <div class="asset-unit">USD</div>
         </div>
       </div>
     </div>
@@ -4273,12 +4349,40 @@ function renderQuotes(data) {
     if (el) el.textContent = unitLabel === '/oz' ? '$'+fmt(price,2)+'/oz' : unitLabel === '/bbl' ? '$'+fmt(price,2)+'/bbl' : '$'+price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     if (ec) { ec.textContent = fmtPct(chg); ec.className = 'asset-change '+cls; }
   }
+  // Commodities
   set('gold','GOLD','/oz',1);
   set('silver','SILVER','/oz',1);
   set('wti','WTI','/bbl',1);
   set('brent','BRENT','/bbl',1);
+  // Crypto
   set('btc','BTC','',1);
   set('eth','ETH','',1);
+
+  // Indices
+  function setIndex(prefix, sym) {
+    const d = q[sym];
+    if (!d) return;
+    const price = d.price;
+    const chg = d.changesPercentage;
+    const cls = changeClass(chg);
+    const el = document.getElementById(prefix+'-price');
+    const ec = document.getElementById(prefix+'-change');
+    if (el) el.textContent = price >= 1000 ? price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : fmt(price,2);
+    if (ec) { ec.textContent = fmtPct(chg); ec.className = 'asset-change '+cls; }
+  }
+  setIndex('sp500','SP500');
+  setIndex('dow','DOW');
+  setIndex('nasdaq','NASDAQ');
+  setIndex('rut','RUT');
+
+  // VIX in section
+  const vixD = q.VIX;
+  if (vixD) {
+    const vel = document.getElementById('vix-price');
+    const vec = document.getElementById('vix-change');
+    if (vel) vel.textContent = fmt(vixD.price, 2);
+    if (vec) { vec.textContent = fmtPct(vixD.changesPercentage); vec.className = 'asset-change '+changeClass(vixD.changesPercentage); }
+  }
 
   // Ticker bar
   function setTicker(idP, idC, sym, divisor) {
@@ -4309,6 +4413,65 @@ function renderQuotes(data) {
       else if (vix > 20) { regEl.textContent = 'Elevated Risk'; regEl.className = 'card-value text-amber'; }
       else { regEl.textContent = 'Normal'; regEl.className = 'card-value text-green'; }
     }
+  }
+}
+
+/* ==========================================
+   FEAR & GREED RENDERING
+   ========================================== */
+function renderFearGreed(data) {
+  if (!data || !data.fear_greed) return;
+  const fg = data.fear_greed;
+
+  function positionDot(dotId, value) {
+    // Arc goes from (20,100) to (180,100) with radius 80, center at (100,100)
+    // Angle from PI (left) to 0 (right), mapping 0-100
+    const angle = Math.PI - (value / 100) * Math.PI;
+    const cx = 100 + 80 * Math.cos(angle);
+    const cy = 100 - 80 * Math.sin(angle);
+    const dot = document.getElementById(dotId);
+    if (dot) {
+      dot.setAttribute('cx', cx);
+      dot.setAttribute('cy', cy);
+      // Color based on value
+      const color = value <= 25 ? '#ef4444' : value <= 45 ? '#f97316' : value <= 55 ? '#eab308' : value <= 75 ? '#84cc16' : '#22c55e';
+      dot.setAttribute('fill', color);
+    }
+  }
+
+  function getLabelClass(label) {
+    const l = (label || '').toLowerCase();
+    if (l.includes('extreme fear')) return 'extreme-fear';
+    if (l.includes('extreme greed')) return 'extreme-greed';
+    if (l.includes('fear')) return 'fear';
+    if (l.includes('greed')) return 'greed';
+    return 'neutral';
+  }
+
+  // Market sentiment
+  if (fg.market && fg.market.value) {
+    const m = fg.market;
+    const mVal = document.getElementById('fg-market-value');
+    const mLab = document.getElementById('fg-market-label');
+    const mPrev = document.getElementById('fg-market-prev');
+    const m1w = document.getElementById('fg-market-1w');
+    const m1m = document.getElementById('fg-market-1m');
+    if (mVal) mVal.textContent = m.value;
+    if (mLab) { mLab.textContent = m.label; mLab.className = 'fg-label ' + getLabelClass(m.label); }
+    if (mPrev) mPrev.textContent = m.previous || '—';
+    if (m1w) m1w.textContent = m.oneWeekAgo || '—';
+    if (m1m) m1m.textContent = m.oneMonthAgo || '—';
+    positionDot('fg-market-dot', m.value);
+  }
+
+  // Crypto sentiment
+  if (fg.crypto && fg.crypto.value) {
+    const c = fg.crypto;
+    const cVal = document.getElementById('fg-crypto-value');
+    const cLab = document.getElementById('fg-crypto-label');
+    if (cVal) cVal.textContent = c.value;
+    if (cLab) { cLab.textContent = c.label; cLab.className = 'fg-label ' + getLabelClass(c.label); }
+    positionDot('fg-crypto-dot', c.value);
   }
 }
 
@@ -4834,6 +4997,7 @@ async function refreshAll() {
     updateApiStatus(hasData);
 
     if (data.quotes) renderQuotes(data.quotes);
+    if (data.quotes) renderFearGreed(data.quotes);
     renderPolymarket(data.polymarket);
     renderSentiment(data.sentiment);
     renderInsider(data.insider);
@@ -4862,25 +5026,11 @@ async function refreshAll() {
 }
 
 /* ==========================================
-   STATIC FALLBACK DATA (shows while API loads)
+   STATIC FALLBACK DATA — REMOVED
+   User requested: no mock data, API-only.
    ========================================== */
 function renderStaticFallbacks() {
-  const STATIC_QUOTES = {
-    VIX:{price:22.4,changesPercentage:8.2},
-    BTC:{price:78200,changesPercentage:-4.8},
-    ETH:{price:3420,changesPercentage:-5.2},
-    GOLD:{price:3284,changesPercentage:3.8},
-    SILVER:{price:32.4,changesPercentage:4.1},
-    WTI:{price:84.2,changesPercentage:8.4},
-    BRENT:{price:88.6,changesPercentage:7.9},
-  };
-  renderQuotes({quotes:STATIC_QUOTES});
-
-  // Sentinel: API loading state
-  const el = document.getElementById('gold-price');
-  if (el && el.textContent === '—') {
-    renderQuotes({quotes:STATIC_QUOTES});
-  }
+  // No static fallback data — all prices come from live API
 }
 
 /* ==========================================
