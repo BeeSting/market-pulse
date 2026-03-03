@@ -8,6 +8,7 @@ import os
 import re
 import datetime
 import hashlib
+import html as _html
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -456,7 +457,9 @@ def fetch_marketaux():
     """MarketAux — rich sentiment scoring per entity."""
     articles = []
     try:
-        url = f"https://api.marketaux.com/v1/news/all?countries=us&filter_entities=true&limit=20&api_token={MARKETAUX_KEY}"
+        # Use published_after to get recent news (last 24h) instead of stale corporate presentations
+        cutoff = (datetime.datetime.utcnow() - datetime.timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M")
+        url = f"https://api.marketaux.com/v1/news/all?countries=us&filter_entities=true&limit=20&published_after={cutoff}&api_token={MARKETAUX_KEY}"
         raw = _http_get(url, timeout=6)
         data = json.loads(raw)
         if not data:
@@ -589,6 +592,13 @@ def _fetch_all_sources():
 
     # Deduplicate
     unique = _dedup_articles(all_articles)
+
+    # Decode HTML entities in titles/descriptions (e.g. &#39; → ')
+    for a in unique:
+        if a.get("title"):
+            a["title"] = _html.unescape(a["title"])
+        if a.get("description"):
+            a["description"] = _html.unescape(a["description"])
 
     # Categorise and score
     for a in unique:
