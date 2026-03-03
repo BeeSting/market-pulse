@@ -574,25 +574,33 @@ def api_earnings_calendar():
     try:
         today = datetime.date.today()
         four_months = today + datetime.timedelta(days=120)
-        url = f"https://financialmodelingprep.com/stable/earning-calendar-confirmed?from={today}&to={four_months}&apikey={FMP_KEY}"
-        req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode())
         all_syms = set(PORTFOLIO_TICKERS + WATCHLIST_TICKERS)
-        filtered = [
-            entry for entry in (data if isinstance(data, list) else [])
-            if entry.get("symbol", "") in all_syms
-        ]
-        # If confirmed is empty, try non-confirmed
-        if not filtered:
-            url2 = f"https://financialmodelingprep.com/stable/earning-calendar?from={today}&to={four_months}&apikey={FMP_KEY}"
-            req2 = urllib.request.Request(url2, headers={"User-Agent": "MarketPulse/1.0"})
-            with urllib.request.urlopen(req2, timeout=20) as resp2:
-                data2 = json.loads(resp2.read().decode())
+        filtered = []
+        # Try confirmed earnings calendar first
+        try:
+            url = f"https://financialmodelingprep.com/stable/earning-calendar-confirmed?from={today}&to={four_months}&apikey={FMP_KEY}"
+            req = urllib.request.Request(url, headers={"User-Agent": "MarketPulse/1.0"})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode())
             filtered = [
-                entry for entry in (data2 if isinstance(data2, list) else [])
+                entry for entry in (data if isinstance(data, list) else [])
                 if entry.get("symbol", "") in all_syms
             ]
+        except Exception:
+            pass  # 404 or other error, fall through
+        # If confirmed is empty, try non-confirmed
+        if not filtered:
+            try:
+                url2 = f"https://financialmodelingprep.com/stable/earning-calendar?from={today}&to={four_months}&apikey={FMP_KEY}"
+                req2 = urllib.request.Request(url2, headers={"User-Agent": "MarketPulse/1.0"})
+                with urllib.request.urlopen(req2, timeout=20) as resp2:
+                    data2 = json.loads(resp2.read().decode())
+                filtered = [
+                    entry for entry in (data2 if isinstance(data2, list) else [])
+                    if entry.get("symbol", "") in all_syms
+                ]
+            except Exception:
+                pass  # 404 or other error, fall through
         # If still empty, build from analyst estimates for top holdings
         if not filtered:
             def _fetch_est(ticker):
