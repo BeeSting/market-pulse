@@ -226,6 +226,69 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
 }
 .icon-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
 .hamburger { display: none; }
+
+/* ==========================================
+   NAV DROPDOWN MENUS
+   ========================================== */
+.nav-dropdown {
+  position: relative;
+  list-style: none;
+}
+.nav-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: all var(--transition-interactive);
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-dropdown-trigger:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+.nav-dropdown-trigger svg {
+  transition: transform var(--transition-interactive);
+}
+.nav-dropdown:hover .nav-dropdown-trigger svg,
+.nav-dropdown.open .nav-dropdown-trigger svg {
+  transform: rotate(180deg);
+}
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 180px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) 0;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  list-style: none;
+}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
+  display: block;
+}
+.nav-dropdown-menu li a {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: all var(--transition-interactive);
+}
+.nav-dropdown-menu li a:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
 @media (max-width: 768px) {
   .nav-links { display: none; }
   .nav-links.open {
@@ -234,6 +297,16 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
     padding: var(--space-4); gap: var(--space-2); z-index: 99;
   }
   .nav-links.open a { padding: var(--space-2) var(--space-4); font-size: var(--text-sm); }
+  .nav-dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    padding-left: var(--space-4);
+  }
+  .nav-links.open .nav-dropdown-menu {
+    display: block;
+  }
   .hamburger { display: flex; }
 }
 
@@ -1022,19 +1095,42 @@ section:not(.hero-section):not(.kpi-ticker-section) {
       MARKET PULSE <span style="font-size:0.6rem;opacity:0.5;margin-left:4px;">v2.1</span>
     </div>
     <ul class="nav-links" id="nav-links">
-      <li><a href="#commodities">Markets</a></li>
-      <li><a href="#alpha">Signals</a></li>
-      <li><a href="#polymarket">Polymarket</a></li>
-      <li><a href="#iran">Conflict</a></li>
-      <li><a href="#news-sentiment">News</a></li>
-      <li><a href="#insider">Insider</a></li>
-      <li><a href="#congress-trades">Congress</a></li>
-      <li><a href="#allocation">Sectors</a></li>
-      <li><a href="#movers">Movers</a></li>
-      <li><a href="#macro">Macro</a></li>
-      <li><a href="#outlook">Outlook</a></li>
-      <li><a href="#recommendations">Actions</a></li>
-      <li><a href="#buylist">Buy List</a></li>
+      <li class="nav-dropdown">
+        <a href="#commodities" class="nav-dropdown-trigger">Markets <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="margin-left:2px;"><path d="M2 4l3 3 3-3z"/></svg></a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="#commodities">Commodities & Indices</a></li>
+          <li><a href="#movers">Market Movers</a></li>
+          <li><a href="#macro">Macro Dashboard</a></li>
+          <li><a href="#polymarket">Polymarket</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown">
+        <a href="#alpha" class="nav-dropdown-trigger">Intelligence <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="margin-left:2px;"><path d="M2 4l3 3 3-3z"/></svg></a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="#alpha">Alpha Signals</a></li>
+          <li><a href="#iran">Conflict Timeline</a></li>
+          <li><a href="#news-sentiment">News Intelligence</a></li>
+          <li><a href="#insider">Insider Trading</a></li>
+          <li><a href="#congress-trades">Congress Trades</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown">
+        <a href="#allocation" class="nav-dropdown-trigger">Portfolio <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="margin-left:2px;"><path d="M2 4l3 3 3-3z"/></svg></a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="#allocation">Sector Allocation</a></li>
+          <li><a href="#earnings-results">Earnings Results</a></li>
+          <li><a href="#earnings">Earnings Calendar</a></li>
+          <li><a href="#rotation">Sector Rotation</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown">
+        <a href="#outlook" class="nav-dropdown-trigger">Strategy <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="margin-left:2px;"><path d="M2 4l3 3 3-3z"/></svg></a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="#outlook">Market Outlook</a></li>
+          <li><a href="#recommendations">Actions</a></li>
+          <li><a href="#buylist">Buy List</a></li>
+        </ul>
+      </li>
     </ul>
     <div class="nav-actions">
       <button class="icon-btn" onclick="refreshAll()" title="Refresh data" aria-label="Refresh data" id="refresh-nav-btn">
@@ -1488,114 +1584,16 @@ section:not(.hero-section):not(.kpi-ticker-section) {
 <hr class="section-divider">
 
 <!-- ============================================================
-     IRAN CONFLICT DEVELOPMENTS
+     GEOPOLITICAL CONFLICT TIMELINE (LLM-powered)
      ============================================================ -->
 <section id="iran">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Iran Conflict Developments</h2>
-      <p class="section-subtitle">Real-time geopolitical intelligence with portfolio impact assessment</p>
+      <h2 class="section-title">Geopolitical Conflict Timeline</h2>
+      <p class="section-subtitle">AI-powered intelligence feed — events, market impact, and risk assessment</p>
     </div>
-
-    <div class="grid-3 mb-8" id="iran-news-featured">
-      <div class="news-card section-accent-red">
-        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
-          <span class="severity-badge severity-critical">Critical</span>
-          <span style="font-size:0.625rem;color:var(--color-text-faint);">Feb 28, 2026</span>
-        </div>
-        <div class="news-headline">Iran Deploys Additional Naval Assets to Strait of Hormuz</div>
-        <p class="news-excerpt">Iran's Revolutionary Guard Corps (IRGC) has positioned three additional frigates and multiple fast-attack craft at the entrance to the Strait of Hormuz, through which approximately 20% of global oil supply transits daily. Regional shipping insurance premiums have surged 340%.</p>
-        <div class="news-meta"><span>Reuters</span><span>·</span><span>Oil +8.4%</span><span>·</span><span>Defense sector +4.2%</span></div>
-      </div>
-      <div class="news-card section-accent-red">
-        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
-          <span class="severity-badge severity-high">High</span>
-          <span style="font-size:0.625rem;color:var(--color-text-faint);">Mar 01, 2026</span>
-        </div>
-        <div class="news-headline">US Carrier Strike Group Repositions to Persian Gulf</div>
-        <p class="news-excerpt">The USS Gerald R. Ford carrier strike group has been ordered from the Mediterranean to the Persian Gulf, joining the USS Dwight D. Eisenhower already on station. The dual-carrier presence signals maximum deterrence posture not seen since 2019.</p>
-        <div class="news-meta"><span>AP</span><span>·</span><span>Defense stocks +3.8%</span><span>·</span><span>LMT, RTX, NOC rally</span></div>
-      </div>
-      <div class="news-card section-accent-amber">
-        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
-          <span class="severity-badge severity-medium">Medium</span>
-          <span style="font-size:0.625rem;color:var(--color-text-faint);">Mar 02, 2026</span>
-        </div>
-        <div class="news-headline">Qatar Offering Mediation as Diplomatic Back-Channel Emerges</div>
-        <p class="news-excerpt">Qatar's foreign ministry has confirmed it is facilitating indirect talks between Washington and Tehran following back-channel overtures. A preliminary ceasefire framework is reportedly under discussion, contingent on Iranian nuclear inspection concessions.</p>
-        <div class="news-meta"><span>FT</span><span>·</span><span>Oil -2.1% on news</span><span>·</span><span>Risk assets bid</span></div>
-      </div>
-    </div>
-
-    <!-- News Feed -->
-    <div class="news-feed" id="iran-news-feed">
-      <div class="news-feed-item">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px;">
-            <span class="severity-badge severity-high">High</span>
-            <span style="font-size:0.625rem;color:var(--color-text-faint);">Mar 02, 2026 · 09:14 GMT</span>
-          </div>
-          <div style="font-size:var(--text-xs);font-weight:600;margin-bottom:3px;">Saudi Aramco activates emergency production contingency plans</div>
-          <div style="font-size:0.6875rem;color:var(--color-text-muted);">Saudi Aramco has quietly activated its emergency production contingency protocols, preparing to increase output to offset potential Hormuz disruption.</div>
-        </div>
-      </div>
-      <div class="news-feed-item">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px;">
-            <span class="severity-badge severity-medium">Medium</span>
-            <span style="font-size:0.625rem;color:var(--color-text-faint);">Mar 01, 2026 · 22:31 GMT</span>
-          </div>
-          <div style="font-size:var(--text-xs);font-weight:600;margin-bottom:3px;">Iran nuclear talks stall as IAEA inspection demands rejected</div>
-          <div style="font-size:0.6875rem;color:var(--color-text-muted);">Iran has rejected the IAEA's latest demand for snap inspections at the Fordow enrichment facility, describing them as "politically motivated."</div>
-        </div>
-      </div>
-      <div class="news-feed-item">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px;">
-            <span class="severity-badge severity-high">High</span>
-            <span style="font-size:0.625rem;color:var(--color-text-faint);">Mar 01, 2026 · 14:55 GMT</span>
-          </div>
-          <div style="font-size:var(--text-xs);font-weight:600;margin-bottom:3px;">BTC drops 8% as risk-off sentiment accelerates on conflict news</div>
-          <div style="font-size:0.6875rem;color:var(--color-text-muted);">Bitcoin fell sharply as Iran-related risk-off sentiment spread across markets. Mining stocks IREN, CIFR, WULF all declined 10–15% in sympathy.</div>
-        </div>
-      </div>
-      <div class="news-feed-item">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px;">
-            <span class="severity-badge severity-low">Low</span>
-            <span style="font-size:0.625rem;color:var(--color-text-faint);">Feb 28, 2026 · 11:20 GMT</span>
-          </div>
-          <div style="font-size:var(--text-xs);font-weight:600;margin-bottom:3px;">G7 emergency energy security summit called for March 8</div>
-          <div style="font-size:0.6875rem;color:var(--color-text-muted);">Leaders of the G7 nations will convene an emergency virtual summit to coordinate strategic petroleum reserve releases and energy diversification response.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Portfolio Impact -->
-    <div class="card mt-4">
-      <div class="card-title">Portfolio Impact Assessment</div>
-      <div class="grid-4" style="gap:var(--space-3);">
-        <div style="text-align:center;padding:var(--space-3);background:var(--color-red-muted);border-radius:var(--radius-md);">
-          <div style="font-size:var(--text-xs);color:var(--color-red-text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-1);">Crypto Mining</div>
-          <div style="font-size:var(--text-lg);font-weight:700;color:var(--color-red);">-15% to -25%</div>
-          <div style="font-size:0.625rem;color:var(--color-text-faint);">IREN, CIFR, WULF, BITF</div>
-        </div>
-        <div style="text-align:center;padding:var(--space-3);background:var(--color-green-muted);border-radius:var(--radius-md);">
-          <div style="font-size:var(--text-xs);color:var(--color-green-text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-1);">Precious Metals</div>
-          <div style="font-size:var(--text-lg);font-weight:700;color:var(--color-green);">+8% to +15%</div>
-          <div style="font-size:0.625rem;color:var(--color-text-faint);">SLV, IAU, PALL</div>
-        </div>
-        <div style="text-align:center;padding:var(--space-3);background:var(--color-amber-muted);border-radius:var(--radius-md);">
-          <div style="font-size:var(--text-xs);color:var(--color-amber-text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-1);">Tech / Growth</div>
-          <div style="font-size:var(--text-lg);font-weight:700;color:var(--color-amber);">-5% to -12%</div>
-          <div style="font-size:0.625rem;color:var(--color-text-faint);">NET, NVDA, GOOGL, SHOP</div>
-        </div>
-        <div style="text-align:center;padding:var(--space-3);background:var(--color-blue-muted);border-radius:var(--radius-md);">
-          <div style="font-size:var(--text-xs);color:var(--color-blue-text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-1);">Fintech</div>
-          <div style="font-size:var(--text-lg);font-weight:700;color:var(--color-blue);">-3% to -8%</div>
-          <div style="font-size:0.625rem;color:var(--color-text-faint);">SOFI, PYPL, HOOD, NU</div>
-        </div>
-      </div>
+    <div id="conflict-timeline">
+      <div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Loading conflict timeline...</div>
     </div>
   </div>
 </section>
@@ -1928,6 +1926,23 @@ section:not(.hero-section):not(.kpi-ticker-section) {
     </div>
     <div id="movers-active" class="tab-pane">
       <div class="table-scroll"><table class="data-table"><thead><tr><th>Ticker</th><th class="text-right">Price</th><th class="text-right">Change %</th><th class="text-right">Volume</th></tr></thead><tbody id="active-body"><tr><td colspan="4"><div class="loading-container"><div class="loading-spinner"></div>Loading…</div></td></tr></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ============================================================
+     RECENT EARNINGS RESULTS
+     ============================================================ -->
+<section id="earnings-results">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Recent Earnings Results</h2>
+      <p class="section-subtitle">Portfolio stock quarterly results from the last 60 days — revenue, EPS, and post-earnings price reaction</p>
+    </div>
+    <div id="earnings-results-content">
+      <div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Loading earnings results...</div>
     </div>
   </div>
 </section>
@@ -4511,10 +4526,201 @@ function renderCongressTrades(data) {
 }
 
 /* ==========================================
+   CONFLICT TIMELINE RENDERER
+   ========================================== */
+function renderConflictTimeline(data) {
+  const container = document.getElementById('conflict-timeline');
+  if (!container) return;
+
+  if (!data || data.status === 'warming') {
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Geopolitical intelligence feed is warming up… refresh in a moment.</div>';
+    return;
+  }
+
+  const alertLevel = data.alert_level || 'moderate';
+  const alertColors = {
+    critical: { bg: 'var(--color-red-muted)',  border: 'var(--color-red)',  text: 'var(--color-red)',  label: 'CRITICAL' },
+    high:     { bg: 'var(--color-red-muted)',  border: 'var(--color-red)',  text: 'var(--color-red-text)',  label: 'HIGH' },
+    elevated: { bg: 'var(--color-amber-muted)', border: 'var(--color-amber)', text: 'var(--color-amber-text)', label: 'ELEVATED' },
+    moderate: { bg: 'var(--color-blue-muted)',  border: 'var(--color-blue)',  text: 'var(--color-blue-text)',  label: 'MODERATE' },
+  };
+  const ac = alertColors[alertLevel] || alertColors.moderate;
+
+  // Severity badge class mapping
+  const sevClass = s => ({'critical':'severity-critical','high':'severity-high','medium':'severity-medium','low':'severity-low'}[s] || 'severity-low');
+
+  // Build alert card
+  let html = `
+    <div style="background:${ac.bg};border:1px solid ${ac.border};border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-6);">
+      <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3);">
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--radius-sm);background:${ac.border};color:#fff;font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          ${ac.label} ALERT
+        </span>
+        <span style="font-size:0.625rem;color:var(--color-text-faint);">${data.updated_at ? new Date(data.updated_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
+      </div>
+      <div style="font-size:var(--text-base);font-weight:600;color:${ac.text};margin-bottom:var(--space-2);">${data.headline || ''}</div>
+    </div>
+  `;
+
+  // Market data cards
+  const md = data.market_data;
+  if (md && Object.keys(md).length > 0) {
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3);margin-bottom:var(--space-6);">';
+    for (const [asset, vals] of Object.entries(md)) {
+      const isUp = (vals.changePercent || 0) >= 0;
+      const col = isUp ? 'var(--color-green)' : 'var(--color-red)';
+      const sign = isUp ? '+' : '';
+      html += `
+        <div style="padding:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:0.625rem;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">${asset}</div>
+          <div style="font-size:var(--text-base);font-weight:700;font-family:'DM Sans',sans-serif;">$${vals.price?.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) || '—'}</div>
+          <div style="font-size:0.625rem;font-weight:600;color:${col};">${sign}${vals.changePercent?.toFixed(2) || '0.00'}%</div>
+        </div>
+      `;
+    }
+    html += '</div>';
+  }
+
+  // Timeline events
+  const events = data.events || [];
+  if (events.length > 0) {
+    html += '<div style="position:relative;padding-left:var(--space-6);border-left:2px solid var(--color-border-strong);margin-bottom:var(--space-6);">';
+    events.forEach(ev => {
+      const sev = ev.severity || 'low';
+      const dotColor = {'critical':'var(--color-red)','high':'var(--color-red)','medium':'var(--color-amber)','low':'var(--color-blue)'}[sev] || 'var(--color-blue)';
+      html += `
+        <div style="position:relative;margin-bottom:var(--space-5);">
+          <div style="position:absolute;left:calc(-1 * var(--space-6) - 5px);top:4px;width:10px;height:10px;border-radius:50%;background:${dotColor};border:2px solid var(--color-bg);"></div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px;">
+            <span class="severity-badge ${sevClass(sev)}">${sev.charAt(0).toUpperCase()+sev.slice(1)}</span>
+            <span style="font-size:0.625rem;color:var(--color-text-faint);">${ev.date || ''}</span>
+          </div>
+          <div style="font-size:var(--text-sm);color:var(--color-text);">${ev.text || ''}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  // Market impact summary
+  if (data.market_impact) {
+    html += `
+      <div style="padding:var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);">
+        <div style="font-size:var(--text-xs);font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-2);">Market Impact Assessment</div>
+        <div style="font-size:var(--text-sm);color:var(--color-text);line-height:1.6;">${data.market_impact}</div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+/* ==========================================
+   EARNINGS RESULTS RENDERER
+   ========================================== */
+function renderEarningsResults(data) {
+  const container = document.getElementById('earnings-results-content');
+  if (!container) return;
+
+  if (!data || data.status === 'warming') {
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Loading recent earnings results…</div>';
+    return;
+  }
+
+  const earnings = data.earnings || [];
+  if (earnings.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">No portfolio stocks reported earnings in the last 60 days.</div>';
+    return;
+  }
+
+  const fmtRev = v => {
+    if (v == null) return '—';
+    const abs = Math.abs(v);
+    if (abs >= 1e9) return (v/1e9).toFixed(2)+'B';
+    if (abs >= 1e6) return (v/1e6).toFixed(1)+'M';
+    if (abs >= 1e3) return (v/1e3).toFixed(0)+'K';
+    return v.toFixed(0);
+  };
+
+  // Summary cards row
+  const beats = earnings.filter(e => e.priceReactionPct != null && e.priceReactionPct > 0).length;
+  const misses = earnings.filter(e => e.priceReactionPct != null && e.priceReactionPct < 0).length;
+  const avgReaction = earnings.filter(e => e.priceReactionPct != null).reduce((s,e) => s+e.priceReactionPct, 0) / (earnings.filter(e=>e.priceReactionPct!=null).length||1);
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3);margin-bottom:var(--space-6);">
+      <div style="padding:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:0.625rem;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Reported</div>
+        <div style="font-size:var(--text-lg);font-weight:700;font-family:'DM Sans',sans-serif;">${earnings.length}</div>
+      </div>
+      <div style="padding:var(--space-3);background:var(--color-green-muted);border:1px solid var(--color-border);border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:0.625rem;color:var(--color-green-text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Price Up</div>
+        <div style="font-size:var(--text-lg);font-weight:700;font-family:'DM Sans',sans-serif;color:var(--color-green);">${beats}</div>
+      </div>
+      <div style="padding:var(--space-3);background:var(--color-red-muted);border:1px solid var(--color-border);border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:0.625rem;color:var(--color-red-text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Price Down</div>
+        <div style="font-size:var(--text-lg);font-weight:700;font-family:'DM Sans',sans-serif;color:var(--color-red);">${misses}</div>
+      </div>
+      <div style="padding:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);text-align:center;">
+        <div style="font-size:0.625rem;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Avg Reaction</div>
+        <div style="font-size:var(--text-lg);font-weight:700;font-family:'DM Sans',sans-serif;color:${avgReaction>=0?'var(--color-green)':'var(--color-red)'};">${avgReaction>=0?'+':''}${avgReaction.toFixed(1)}%</div>
+      </div>
+    </div>
+  `;
+
+  // Results table
+  html += `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Report Date</th>
+            <th>Ticker</th>
+            <th>Company</th>
+            <th class="text-right">Revenue</th>
+            <th class="text-right">Rev QoQ</th>
+            <th class="text-right">EPS</th>
+            <th class="text-right">Net Margin</th>
+            <th class="text-right">Price Reaction</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  earnings.forEach(e => {
+    const reactionCol = e.priceReactionPct != null
+      ? (e.priceReactionPct >= 0 ? 'var(--color-green)' : 'var(--color-red)')
+      : 'var(--color-text-faint)';
+    const reactionSign = e.priceReactionPct != null && e.priceReactionPct >= 0 ? '+' : '';
+    const revQoQCol = e.revenueQoQ != null
+      ? (e.revenueQoQ >= 0 ? 'var(--color-green)' : 'var(--color-red)')
+      : 'var(--color-text-faint)';
+    const revQoQSign = e.revenueQoQ != null && e.revenueQoQ >= 0 ? '+' : '';
+
+    html += `
+      <tr>
+        <td style="color:var(--color-text-muted);">${e.reportDate || '—'}</td>
+        <td class="fw-600" style="color:var(--color-blue);">${e.symbol || '—'}</td>
+        <td style="color:var(--color-text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name || '—'}</td>
+        <td class="text-right tabular">$${fmtRev(e.revenue)}</td>
+        <td class="text-right tabular" style="color:${revQoQCol};">${e.revenueQoQ != null ? revQoQSign+e.revenueQoQ.toFixed(1)+'%' : '—'}</td>
+        <td class="text-right tabular">${e.epsDiluted != null ? '$'+e.epsDiluted.toFixed(2) : '—'}</td>
+        <td class="text-right tabular">${e.netMargin != null ? e.netMargin.toFixed(1)+'%' : '—'}</td>
+        <td class="text-right tabular fw-600" style="color:${reactionCol};">${e.priceReactionPct != null ? reactionSign+e.priceReactionPct.toFixed(1)+'%' : '—'}</td>
+      </tr>
+    `;
+  });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+/* ==========================================
    API DATA LOADING
    ========================================== */
 async function loadAllData() {
-  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment','dcf','news-feed'];
+  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment','dcf','news-feed','conflict-timeline','earnings-results'];
   const results = {};
   await Promise.allSettled(endpoints.map(async ep => {
     try {
@@ -5171,6 +5377,8 @@ async function refreshAll() {
     enrichAlphaWithTechnicals(data['technicals-full']);
     renderNewsSentiment(data['news-sentiment']);
     if (data['news-feed']) renderNewsIntelligence(data['news-feed']);
+    renderConflictTimeline(data['conflict-timeline']);
+    renderEarningsResults(data['earnings-results']);
 
     const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
     const ftEl = document.getElementById('footer-refresh-time');

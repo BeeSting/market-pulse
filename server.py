@@ -12,6 +12,8 @@ import urllib.error
 import concurrent.futures
 from flask import Flask, send_from_directory, jsonify, request
 from news_feed import aggregate_news_feed
+from conflict_timeline import get_conflict_timeline
+from earnings_results import get_earnings_results
 
 app = Flask(__name__, static_folder="static")
 
@@ -29,6 +31,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "22b226153fmsh05ce406581ceab8p1586d8jsn6de44ca4671f")
 UW_KEY = os.environ.get("UNUSUAL_WHALES_API_KEY", "cc97a47e-9c8d-4fdb-a2b8-be4eeba08045")
 MASSIVE_KEY = os.environ.get("MASSIVE_KEY", "8DLmlXSQ8eaVqjUtNPskYcbLhLasNv1I")
+OPENAI_KEY  = os.environ.get("OPENAI_KEY",  "")
 
 # ── Tickers ───────────────────────────────────────────────
 PORTFOLIO_TICKERS = [
@@ -1540,6 +1543,26 @@ def api_related(ticker):
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
         return jsonify({"error": str(e), "ticker": ticker.upper(), "related": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── Conflict Timeline (LLM-powered) ─────────────────────
+@app.route("/api/conflict-timeline")
+def api_conflict_timeline():
+    try:
+        result = get_conflict_timeline()
+        return jsonify(result), 200, {"Cache-Control": "public, max-age=300"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+# ── Earnings Results ──────────────────────────────────────
+@app.route("/api/earnings-results")
+def api_earnings_results():
+    try:
+        result = get_earnings_results()
+        return jsonify(result), 200, {"Cache-Control": "public, max-age=600"}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
 
 
 # ── News Intelligence Feed ─────────────────────────────
