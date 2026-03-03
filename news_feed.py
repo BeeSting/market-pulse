@@ -525,23 +525,22 @@ def fetch_cnbc_rss():
 # ── MAIN AGGREGATOR ──────────────────────────────────────
 
 def _fetch_all_sources():
-    """Raw fetch from all sources — expensive, runs at most once per _CACHE_TTL."""
+    """Raw fetch from all sources — runs in background thread only."""
     import time as _time
     t0 = _time.time()
-    HARD_DEADLINE = 25  # seconds — must finish before gunicorn timeout
+    HARD_DEADLINE = 40  # seconds (we're in a bg thread, no request timeout)
 
     all_articles = []
     source_counts = {}
 
-    # Fast sources first (RSS, Massive, Benzinga) then slow ones
-    fast_sources = [
+    sources = [
         ("massive", fetch_massive_news),
         ("benzinga", fetch_benzinga_news),
         ("bloomberg_rss", fetch_bloomberg_rss),
         ("cnbc_rss", fetch_cnbc_rss),
     ]
 
-    for name, fn in fast_sources:
+    for name, fn in sources:
         if _time.time() - t0 > HARD_DEADLINE:
             print(f"[NewsFeed] Deadline hit, skipping remaining sources")
             break
@@ -554,7 +553,7 @@ def _fetch_all_sources():
             source_counts[name] = 0
             print(f"[NewsFeed] {name} failed: {e}")
 
-    # MarketAux (can be slow, skip if near deadline)
+    # MarketAux (can be slow)
     if _time.time() - t0 < HARD_DEADLINE - 8:
         try:
             result = fetch_marketaux()
@@ -566,7 +565,6 @@ def _fetch_all_sources():
             print(f"[NewsFeed] marketaux failed: {e}")
     else:
         source_counts["marketaux"] = 0
-        print("[NewsFeed] Skipping marketaux (near deadline)")
 
     # FMP sources last (rate-limit sensitive)
     for name, fn in [("fmp_stock", fetch_fmp_stock_news), ("fmp_general", fetch_fmp_general_news)]:
@@ -581,13 +579,13 @@ def _fetch_all_sources():
             print(f"[NewsFeed] {name}: {len(result)} articles")
         except Exception as e:
             source_counts[name] = 0
-            print(f"[NewsFeed] {name} failed (rate limit?): {e}")
+            print(f"[NewsFeed] {name} failed: {e}")
         _time.sleep(0.3)
 
     # Deduplicate
     unique = _dedup_articles(all_articles)
 
-    # Categorise and score each article
+    # Categorise and score
     for a in unique:
         tickers = a.get("tickers",[])
         cats = _categorise(a.get("title",""), a.get("description",""), tickers)
@@ -606,11 +604,10 @@ def _fetch_all_sources():
         if "_origin" in a:
             del a["_origin"]
 
-    # Sort by relevance
     unique.sort(key=lambda a: a.get("relevance_score",0), reverse=True)
 
     elapsed = round(_time.time() - t0, 1)
-    print(f"[NewsFeed] Fetched {len(all_articles)} raw, {len(unique)} unique in {elapsed}s | {source_counts}")
+    print(f"[NewsFeed] Fetched {len(all_articles)} raw, {len(unique)} unique in {elapsed}s")
 
     return {
         "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
@@ -619,41 +616,19 @@ def _fetch_all_sources():
         "source_counts": source_counts,
     }
 
-
-_warming = threading.Event()
-
-def _get_cached():
-    """Return cached data or refresh if stale. Returns None if warming."""
-    import time as _time
-    now = _time.time()
-    with _cache_lock:
-        if _cache["data"] and (now - _cache["ts"]) < _CACHE_TTL:
-            return _cache["data"]
-    # If another thread is warming, wait briefly then return whatever we have
-    if _warming.is_set():
-        _warming.wait(timeout=20)
-        with _cache_lock:
-            if _cache["data"]:
-                return _cache["data"]
-        return None
-    # We'll do the refresh
-    _warming.set()
-    try:
-        fresh = _fetch_all_sources()
-        with _cache_lock:
-            _cache["data"] = fresh
-            _cache["ts"] = _time.time()
-        return fresh
-    finally:
-        _warming.clear()
-
-
 def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
     """
-    Serve from cache, apply filters per-request.
+    Return cached articles if available, otherwise return warming status.
+    Cache is populated/refreshed by background thread.
     """
-    cached = _get_cached()
+    import copy
+    
+    with _cache_lock:
+        cached = _cache["data"]
+    
     if not cached:
+        # Trigger a refresh (non-blocking)
+        _trigger_refresh()
         return {
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
             "total_fetched": 0,
@@ -663,7 +638,14 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
             "articles": [],
             "status": "warming",
         }
-    import copy
+    
+    # Trigger background refresh if stale
+    import time as _time
+    with _cache_lock:
+        age = _time.time() - _cache["ts"]
+    if age > _CACHE_TTL:
+        _trigger_refresh()
+    
     unique = copy.deepcopy(cached["all_unique"])
 
     # Apply filters
@@ -685,7 +667,6 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
 
     unique = unique[:limit]
 
-    # Count categories
     cat_counts = {}
     for a in unique:
         for c in a.get("categories",[]):
@@ -701,13 +682,31 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
     }
 
 
-# Pre-warm cache in background on import
-def _warm_cache():
-    try:
-        _get_cached()
-        print("[NewsFeed] Cache warmed successfully")
-    except Exception as e:
-        print(f"[NewsFeed] Cache warm failed: {e}")
+_refresh_in_progress = False
 
-_warm_thread = threading.Thread(target=_warm_cache, daemon=True)
-_warm_thread.start()
+def _trigger_refresh():
+    """Start background refresh if not already running."""
+    global _refresh_in_progress
+    if _refresh_in_progress:
+        return
+    _refresh_in_progress = True
+    
+    def _do():
+        global _refresh_in_progress
+        try:
+            fresh = _fetch_all_sources()
+            with _cache_lock:
+                _cache["data"] = fresh
+                _cache["ts"] = __import__('time').time()
+            print(f"[NewsFeed] Cache refreshed: {fresh.get('total_fetched',0)} articles")
+        except Exception as e:
+            print(f"[NewsFeed] Refresh failed: {e}")
+        finally:
+            _refresh_in_progress = False
+    
+    t = threading.Thread(target=_do, daemon=True)
+    t.start()
+
+
+# Warm cache on startup
+_trigger_refresh()
