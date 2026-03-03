@@ -44,7 +44,13 @@ AI_TECH_KW = {'ai','artificial intelligence','machine learning','gpu','data cent
               'semiconductor','chip','nvidia','cloud computing','llm','chatgpt',
               'openai','generative ai','transformer','inference'}
 
-def _http_get(url, timeout=8):
+# ── In-memory cache ────────────────────────────────────────
+import threading
+_cache_lock = threading.Lock()
+_cache = {"data": None, "ts": 0}
+_CACHE_TTL = 120  # seconds
+
+def _http_get(url, timeout=6):
     """Simple HTTP GET returning decoded text."""
     import socket
     old_timeout = socket.getdefaulttimeout()
@@ -56,7 +62,7 @@ def _http_get(url, timeout=8):
     finally:
         socket.setdefaulttimeout(old_timeout)
 
-def _safe_json(url, timeout=8):
+def _safe_json(url, timeout=6):
     """GET + JSON parse, returns None on error."""
     try:
         return json.loads(_http_get(url, timeout))
@@ -436,7 +442,7 @@ def fetch_marketaux():
     articles = []
     try:
         import http.client
-        conn = http.client.HTTPSConnection('api.marketaux.com', timeout=6)
+        conn = http.client.HTTPSConnection('api.marketaux.com', timeout=5)
         params = urllib.parse.urlencode({
             'api_token': MARKETAUX_KEY,
             'language': 'en',
@@ -518,13 +524,11 @@ def fetch_cnbc_rss():
 
 # ── MAIN AGGREGATOR ──────────────────────────────────────
 
-def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
-    """
-    Fetch all sources, deduplicate, score, categorise, sort by relevance.
-    Returns dict with articles list + metadata.
-    """
+def _fetch_all_sources():
+    """Raw fetch from all sources — expensive, runs at most once per _CACHE_TTL."""
     import time as _time
-    
+    t0 = _time.time()
+
     sources = [
         ("massive", fetch_massive_news),
         ("benzinga", fetch_benzinga_news),
@@ -532,20 +536,24 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
         ("bloomberg_rss", fetch_bloomberg_rss),
         ("cnbc_rss", fetch_cnbc_rss),
     ]
-    
+
     all_articles = []
     source_counts = {}
-    
-    for name, fn in sources:
-        try:
-            result = fn()
-            all_articles.extend(result)
-            source_counts[name] = len(result)
-        except Exception as e:
-            source_counts[name] = 0
-            print(f"[NewsFeed] {name} failed: {e}")
-    
-    # Try FMP sources with short timeout (they rate-limit aggressively)
+
+    # Use ThreadPoolExecutor to fetch non-FMP sources in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_map = {executor.submit(fn): name for name, fn in sources}
+        for future in concurrent.futures.as_completed(future_map, timeout=12):
+            name = future_map[future]
+            try:
+                result = future.result(timeout=10)
+                all_articles.extend(result)
+                source_counts[name] = len(result)
+            except Exception as e:
+                source_counts[name] = 0
+                print(f"[NewsFeed] {name} failed: {e}")
+
+    # FMP sources last, sequentially with stagger (rate-limit sensitive)
     for name, fn in [("fmp_stock", fetch_fmp_stock_news), ("fmp_general", fetch_fmp_general_news)]:
         try:
             result = fn()
@@ -558,7 +566,7 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
 
     # Deduplicate
     unique = _dedup_articles(all_articles)
-    
+
     # Categorise and score each article
     for a in unique:
         tickers = a.get("tickers",[])
@@ -569,19 +577,52 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
             tickers, cats, a.get("published","")
         )
         a["time_ago"] = _time_ago(a.get("published",""))
-        # Generate a deterministic summary if description is long
         desc = a.get("description","") or ""
         if len(desc) > 120:
-            # Take first 2 sentences as "AI summary"
             sentences = re.split(r'(?<=[.!?])\s+', desc)
             a["summary"] = " ".join(sentences[:2])[:200]
         else:
             a["summary"] = desc[:200]
-        
-        # Clean up origin field
         if "_origin" in a:
             del a["_origin"]
-    
+
+    # Sort by relevance
+    unique.sort(key=lambda a: a.get("relevance_score",0), reverse=True)
+
+    elapsed = round(_time.time() - t0, 1)
+    print(f"[NewsFeed] Fetched {len(all_articles)} raw, {len(unique)} unique in {elapsed}s | {source_counts}")
+
+    return {
+        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "total_fetched": len(all_articles),
+        "all_unique": unique,
+        "source_counts": source_counts,
+    }
+
+
+def _get_cached():
+    """Return cached data or refresh if stale."""
+    import time as _time
+    now = _time.time()
+    with _cache_lock:
+        if _cache["data"] and (now - _cache["ts"]) < _CACHE_TTL:
+            return _cache["data"]
+    # Cache miss — fetch (outside lock to avoid blocking other workers)
+    fresh = _fetch_all_sources()
+    with _cache_lock:
+        _cache["data"] = fresh
+        _cache["ts"] = _time.time()
+    return fresh
+
+
+def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
+    """
+    Serve from cache, apply filters per-request.
+    """
+    cached = _get_cached()
+    import copy
+    unique = copy.deepcopy(cached["all_unique"])
+
     # Apply filters
     if category_filter and category_filter != "all":
         cat_map = {
@@ -594,28 +635,36 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
         }
         target = cat_map.get(category_filter.lower(), category_filter)
         unique = [a for a in unique if target in a.get("categories",[])]
-    
+
     if ticker_filter:
         tf = set(t.strip().upper() for t in ticker_filter.split(",") if t.strip())
         unique = [a for a in unique if set(a.get("tickers",[])) & tf]
-    
-    # Sort by relevance score (desc), then by recency
-    unique.sort(key=lambda a: a.get("relevance_score",0), reverse=True)
-    
-    # Trim to limit
+
     unique = unique[:limit]
-    
+
     # Count categories
     cat_counts = {}
     for a in unique:
         for c in a.get("categories",[]):
             cat_counts[c] = cat_counts.get(c,0) + 1
-    
+
     return {
-        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
-        "total_fetched": len(all_articles),
+        "updated_at": cached["updated_at"],
+        "total_fetched": cached["total_fetched"],
         "total_unique": len(unique),
-        "source_counts": source_counts,
+        "source_counts": cached["source_counts"],
         "category_counts": cat_counts,
         "articles": unique,
     }
+
+
+# Pre-warm cache in background on import
+def _warm_cache():
+    try:
+        _get_cached()
+        print("[NewsFeed] Cache warmed successfully")
+    except Exception as e:
+        print(f"[NewsFeed] Cache warm failed: {e}")
+
+_warm_thread = threading.Thread(target=_warm_cache, daemon=True)
+_warm_thread.start()
