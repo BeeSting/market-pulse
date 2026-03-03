@@ -778,33 +778,60 @@ section { padding: clamp(var(--space-8), 4vw, var(--space-16)) 0; }
 .severity-low { background: var(--color-blue-muted); color: var(--color-blue); }
 
 /* ==========================================
-   NEWS SENTIMENT
+   NEWS INTELLIGENCE
    ========================================== */
-.ns-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
-@media (min-width: 768px) { .ns-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1200px) { .ns-grid { grid-template-columns: repeat(3, 1fr); } }
-.ns-card {
+.ni-tabs { display: flex; gap: 2px; margin-bottom: var(--space-4); background: var(--color-surface); border-radius: var(--radius-md); padding: 3px; border: 1px solid var(--color-border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ni-tab { padding: 6px 14px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); background: transparent; border: none; cursor: pointer; transition: all var(--transition-interactive); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.ni-tab:hover { color: var(--color-text); background: var(--color-surface-2); }
+.ni-tab.active { background: var(--color-blue-muted); color: var(--color-blue); }
+.ni-tab-count { font-size: 0.5625rem; background: var(--color-surface-2); padding: 1px 6px; border-radius: 99px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ni-tab.active .ni-tab-count { background: rgba(59,130,246,0.15); }
+.ni-stats { display: flex; gap: var(--space-4); margin-bottom: var(--space-4); flex-wrap: wrap; }
+.ni-stat { font-size: var(--text-xs); color: var(--color-text-faint); }
+.ni-stat strong { color: var(--color-text-muted); font-weight: 600; }
+.ni-feed { display: flex; flex-direction: column; gap: var(--space-3); }
+.ni-card {
   background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-lg); padding: var(--space-4);
-  display: flex; flex-direction: column; gap: var(--space-2);
-  transition: border-color var(--transition-interactive);
-  text-decoration: none; color: inherit;
+  display: flex; gap: var(--space-4); transition: border-color var(--transition-interactive);
+  text-decoration: none; color: inherit; cursor: pointer;
 }
-.ns-card:hover { border-color: var(--color-border-strong); }
-.ns-title { font-size: var(--text-sm); font-weight: 600; line-height: 1.4; color: var(--color-text); }
-.ns-desc { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.ns-meta { display: flex; align-items: center; gap: var(--space-2); font-size: 0.625rem; color: var(--color-text-faint); flex-wrap: wrap; }
-.ns-insights { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-.ns-badge {
+.ni-card:hover { border-color: var(--color-border-strong); }
+.ni-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ni-card-img { width: 100px; height: 72px; border-radius: var(--radius-md); object-fit: cover; flex-shrink: 0; background: var(--color-surface-2); }
+@media (max-width: 600px) { .ni-card-img { display: none; } }
+.ni-card-title { font-size: var(--text-sm); font-weight: 600; line-height: 1.35; color: var(--color-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ni-card-summary { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ni-card-meta { display: flex; align-items: center; gap: var(--space-2); font-size: 0.625rem; color: var(--color-text-faint); flex-wrap: wrap; }
+.ni-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ni-tag {
   display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px;
   border-radius: var(--radius-sm); font-size: 0.5625rem; font-weight: 600;
   letter-spacing: 0.02em;
 }
-.ns-badge-bullish { background: rgba(34,197,94,0.12); color: var(--color-green); }
-.ns-badge-bearish { background: rgba(239,68,68,0.12); color: var(--color-red); }
-.ns-badge-neutral { background: rgba(100,116,139,0.12); color: var(--color-text-faint); }
-.ns-keywords { display: flex; flex-wrap: wrap; gap: 4px; }
-.ns-keyword { font-size: 0.5625rem; padding: 1px 6px; border-radius: var(--radius-sm); background: var(--color-surface-2); color: var(--color-text-muted); }
+.ni-tag-portfolio { background: rgba(59,130,246,0.1); color: var(--color-blue); }
+.ni-tag-macro { background: rgba(245,158,11,0.1); color: var(--color-amber); }
+.ni-tag-geopolitical { background: rgba(239,68,68,0.1); color: var(--color-red); }
+.ni-tag-crypto { background: rgba(168,85,247,0.1); color: #a855f7; }
+.ni-tag-commodities { background: rgba(234,179,8,0.1); color: #ca8a04; }
+.ni-tag-ai { background: rgba(6,182,212,0.1); color: #06b6d4; }
+.ni-tag-market { background: rgba(100,116,139,0.1); color: var(--color-text-faint); }
+.ni-sentiment {
+  display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px;
+  border-radius: var(--radius-sm); font-size: 0.5625rem; font-weight: 600;
+}
+.ni-sentiment-positive { background: rgba(34,197,94,0.12); color: var(--color-green); }
+.ni-sentiment-negative { background: rgba(239,68,68,0.12); color: var(--color-red); }
+.ni-sentiment-neutral { background: rgba(100,116,139,0.12); color: var(--color-text-faint); }
+.ni-score { display: flex; align-items: center; gap: 4px; font-size: 0.5625rem; font-weight: 700; }
+.ni-score-bar { width: 40px; height: 4px; border-radius: 2px; background: var(--color-surface-2); overflow: hidden; }
+.ni-score-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+.ni-ticker { font-size: 0.5625rem; font-weight: 700; color: var(--color-blue); }
+.ni-load-more { display: flex; justify-content: center; padding: var(--space-4); }
+.ni-load-more button { padding: 8px 24px; border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; transition: all var(--transition-interactive); }
+.ni-load-more button:hover { background: var(--color-surface-2); color: var(--color-text); }
+/* Keep old ns-grid styles for backward compat */
+.ns-grid { display: none; }
 
 /* ==========================================
    SECTOR ALLOCATION
@@ -1576,19 +1603,26 @@ section:not(.hero-section):not(.kpi-ticker-section) {
 <hr class="section-divider">
 
 <!-- ============================================================
-     NEWS SENTIMENT (Massive/Polygon Premium)
+     NEWS INTELLIGENCE (Multi-Source Aggregator)
      ============================================================ -->
 <section id="news-sentiment">
   <div class="container">
     <div class="section-header">
       <h2 class="section-title">News Intelligence</h2>
-      <p class="section-subtitle">Real-time portfolio news with AI-powered sentiment analysis per ticker</p>
+      <p class="section-subtitle">Multi-source aggregator with relevance scoring across 6+ premium feeds</p>
     </div>
-    <div id="news-sentiment-content">
-      <div class="ns-grid" id="news-sentiment-grid">
-        <!-- Filled by JS from /api/news-sentiment -->
+    <div id="ni-content">
+      <div id="ni-tabs-wrap"></div>
+      <div id="ni-stats-wrap" class="ni-stats"></div>
+      <div id="ni-feed" class="ni-feed">
+        <div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Loading news intelligence...</div>
+      </div>
+      <div id="ni-load-more" class="ni-load-more" style="display:none">
+        <button onclick="loadMoreNews()">Load More</button>
       </div>
     </div>
+    <!-- Keep old grid for backward compat -->
+    <div class="ns-grid" id="news-sentiment-grid" style="display:none"></div>
   </div>
 </section>
 
@@ -3835,48 +3869,154 @@ function buildTechnicalSubItems(ticker) {
 }
 
 /* ==========================================
-   NEWS SENTIMENT RENDERING
+   NEWS INTELLIGENCE RENDERING
    ========================================== */
-function renderNewsSentiment(data) {
-  const grid = document.getElementById('news-sentiment-grid');
-  if (!grid) return;
+let _niData = null;
+let _niFilter = 'all';
+let _niVisible = 15;
+
+function renderNewsIntelligence(data) {
   if (!data || !data.articles || !data.articles.length) {
-    grid.innerHTML = '<div style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-sm);">Loading news intelligence...</div>';
+    document.getElementById('ni-feed').innerHTML = '<div style="text-align:center;padding:var(--space-8);color:var(--color-text-faint);font-size:var(--text-sm);">Loading news intelligence...</div>';
     return;
   }
-
-  grid.innerHTML = data.articles.map(a => {
-    // Format time
-    const pub = a.published ? new Date(a.published) : null;
-    const timeStr = pub ? pub.toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
-    // Source (sanitized)
-    const source = sanitizeSource(a.source || '') || 'Market News';
-    // Ticker tags
-    const tickerTags = (a.tickers || []).map(t => `<span style="font-size:0.5625rem;font-weight:700;color:var(--color-blue);">${t}</span>`).join(' ');
-    // Sentiment insights badges
-    const insightsHTML = (a.insights || []).map(ins => {
-      const s = (ins.sentiment || '').toLowerCase();
-      const cls = s === 'bullish' || s === 'positive' ? 'ns-badge-bullish' : s === 'bearish' || s === 'negative' ? 'ns-badge-bearish' : 'ns-badge-neutral';
-      const icon = s === 'bullish' || s === 'positive' ? '▲' : s === 'bearish' || s === 'negative' ? '▼' : '●';
-      const label = ins.ticker ? `${ins.ticker} ${sanitizeSource(ins.sentiment)}` : sanitizeSource(ins.sentiment);
-      return `<span class="ns-badge ${cls}" title="${sanitizeSource(ins.reasoning || '')}">${icon} ${label}</span>`;
-    }).join('');
-    // Keywords
-    const kwHTML = (a.keywords || []).map(k => `<span class="ns-keyword">${k}</span>`).join('');
-    // Card
-    return `<a class="ns-card" href="${a.url || '#'}" target="_blank" rel="noopener">
-      <div class="ns-title">${sanitizeSource(a.title || '')}</div>
-      ${a.description ? `<div class="ns-desc">${sanitizeSource(a.description)}</div>` : ''}
-      <div class="ns-meta">
-        <span>${source}</span>
-        ${timeStr ? `<span>·</span><span>${timeStr}</span>` : ''}
-        ${tickerTags ? `<span>·</span>${tickerTags}` : ''}
-      </div>
-      ${insightsHTML ? `<div class="ns-insights">${insightsHTML}</div>` : ''}
-      ${kwHTML ? `<div class="ns-keywords">${kwHTML}</div>` : ''}
-    </a>`;
-  }).join('');
+  _niData = data;
+  _niFilter = 'all';
+  _niVisible = 15;
+  renderNiTabs();
+  renderNiStats();
+  renderNiFeed();
 }
+
+function renderNiTabs() {
+  if (!_niData) return;
+  const cats = _niData.category_counts || {};
+  const total = _niData.articles.length;
+  const tabDefs = [
+    {key:'all', label:'All News', count: total},
+    {key:'Portfolio', label:'Portfolio', count: cats['Portfolio']||0},
+    {key:'Macro', label:'Macro', count: cats['Macro']||0},
+    {key:'Geopolitical', label:'Geopolitical', count: cats['Geopolitical']||0},
+    {key:'AI & Tech', label:'AI & Tech', count: cats['AI & Tech']||0},
+    {key:'Crypto', label:'Crypto', count: cats['Crypto']||0},
+    {key:'Commodities', label:'Commodities', count: cats['Commodities']||0},
+  ];
+  const wrap = document.getElementById('ni-tabs-wrap');
+  wrap.innerHTML = `<div class="ni-tabs">${tabDefs.filter(t => t.count > 0 || t.key === 'all').map(t =>
+    `<button class="ni-tab${_niFilter===t.key?' active':''}" onclick="filterNews('${t.key}')">
+      ${t.label}<span class="ni-tab-count">${t.count}</span>
+    </button>`
+  ).join('')}</div>`;
+}
+
+function renderNiStats() {
+  if (!_niData) return;
+  const sc = _niData.source_counts || {};
+  const srcList = Object.entries(sc).filter(([k,v])=>v>0).map(([k,v])=>`${v}`).reduce((a,b)=>parseInt(a)+parseInt(b),0);
+  const wrap = document.getElementById('ni-stats-wrap');
+  wrap.innerHTML = `
+    <span class="ni-stat"><strong>${_niData.total_fetched||0}</strong> articles fetched</span>
+    <span class="ni-stat"><strong>${_niData.total_unique||0}</strong> unique after dedup</span>
+    <span class="ni-stat"><strong>${Object.keys(sc).filter(k=>sc[k]>0).length}</strong> sources active</span>
+    <span class="ni-stat">Updated ${new Date(_niData.updated_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+  `;
+}
+
+function filterNews(cat) {
+  _niFilter = cat;
+  _niVisible = 15;
+  renderNiTabs();
+  renderNiFeed();
+}
+
+function getFilteredArticles() {
+  if (!_niData || !_niData.articles) return [];
+  if (_niFilter === 'all') return _niData.articles;
+  return _niData.articles.filter(a => (a.categories||[]).includes(_niFilter));
+}
+
+function renderNiFeed() {
+  const feed = document.getElementById('ni-feed');
+  const articles = getFilteredArticles();
+  if (!articles.length) {
+    feed.innerHTML = '<div style="text-align:center;padding:var(--space-6);color:var(--color-text-faint);font-size:var(--text-sm);">No articles in this category</div>';
+    document.getElementById('ni-load-more').style.display = 'none';
+    return;
+  }
+  const visible = articles.slice(0, _niVisible);
+  feed.innerHTML = visible.map(a => renderNiCard(a)).join('');
+  const more = document.getElementById('ni-load-more');
+  more.style.display = articles.length > _niVisible ? '' : 'none';
+}
+
+function loadMoreNews() {
+  _niVisible += 15;
+  renderNiFeed();
+}
+
+function renderNiCard(a) {
+  const title = sanitizeSource(a.title || '');
+  const summary = sanitizeSource(a.summary || a.description || '');
+  const source = sanitizeSource(a.source || 'Market News');
+  const timeAgo = a.time_ago || '';
+  const url = a.url || '#';
+  const score = a.relevance_score || 0;
+  const scoreColor = score >= 70 ? 'var(--color-green)' : score >= 50 ? 'var(--color-amber)' : 'var(--color-text-faint)';
+
+  // Category tags
+  const catTagMap = {
+    'Portfolio': 'ni-tag-portfolio', 'Macro': 'ni-tag-macro',
+    'Geopolitical': 'ni-tag-geopolitical', 'Crypto': 'ni-tag-crypto',
+    'Commodities': 'ni-tag-commodities', 'AI & Tech': 'ni-tag-ai',
+    'Market': 'ni-tag-market'
+  };
+  const catTags = (a.categories||[]).map(c =>
+    `<span class="ni-tag ${catTagMap[c]||'ni-tag-market'}">${c}</span>`
+  ).join('');
+
+  // Ticker tags
+  const tickerTags = (a.tickers||[]).slice(0,4).map(t =>
+    `<span class="ni-ticker">${t}</span>`
+  ).join(' ');
+
+  // Sentiment insights
+  const sentimentHTML = (a.insights||[]).slice(0,3).map(ins => {
+    const s = (ins.sentiment||'').toLowerCase();
+    const cls = s==='bullish'||s==='positive' ? 'ni-sentiment-positive' :
+                s==='bearish'||s==='negative' ? 'ni-sentiment-negative' : 'ni-sentiment-neutral';
+    const icon = s==='bullish'||s==='positive' ? '\u25B2' : s==='bearish'||s==='negative' ? '\u25BC' : '\u25CF';
+    const label = ins.ticker ? `${ins.ticker} ${sanitizeSource(ins.sentiment)}` : sanitizeSource(ins.sentiment);
+    return `<span class="ni-sentiment ${cls}" title="${sanitizeSource(ins.reasoning||'')}">${icon} ${label}</span>`;
+  }).join('');
+
+  // Image
+  const imgHTML = a.image ? `<img class="ni-card-img" src="${a.image}" alt="" loading="lazy" onerror="this.style.display='none'">` : '';
+
+  return `<a class="ni-card" href="${url}" target="_blank" rel="noopener">
+    <div class="ni-card-body">
+      <div class="ni-card-title">${title}</div>
+      ${summary ? `<div class="ni-card-summary">${summary}</div>` : ''}
+      <div class="ni-card-meta">
+        <span>${source}</span>
+        ${timeAgo ? `<span>\u00b7</span><span>${timeAgo}</span>` : ''}
+        ${tickerTags ? `<span>\u00b7</span>${tickerTags}` : ''}
+        <span>\u00b7</span>
+        <span class="ni-score">
+          <span style="color:${scoreColor}">${score}</span>
+          <span class="ni-score-bar"><span class="ni-score-fill" style="width:${score}%;background:${scoreColor}"></span></span>
+        </span>
+      </div>
+      <div class="ni-card-tags">
+        ${catTags}
+        ${sentimentHTML}
+      </div>
+    </div>
+    ${imgHTML}
+  </a>`;
+}
+
+// Keep old function as no-op for backward compat
+function renderNewsSentiment(data) { /* replaced by renderNewsIntelligence */ }
 
 function renderAlphaSummary() {
   const actions = {Accumulate:0,Hold:0,Monitor:0,Reduce:0};
@@ -4362,7 +4502,7 @@ function renderCongressTrades(data) {
    API DATA LOADING
    ========================================== */
 async function loadAllData() {
-  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment','dcf'];
+  const endpoints = ['quotes','polymarket','analyst-targets','sentiment','insider','macro','market-movers','earnings-calendar','news','fundamentals','analyst-ratings','market-tide','options-flow','dark-pool','congress-trades-live','technicals-full','news-sentiment','dcf','news-feed'];
   const results = {};
   await Promise.allSettled(endpoints.map(async ep => {
     try {
@@ -5018,6 +5158,7 @@ async function refreshAll() {
     renderCongressTrades(data['congress-trades-live']);
     enrichAlphaWithTechnicals(data['technicals-full']);
     renderNewsSentiment(data['news-sentiment']);
+    if (data['news-feed']) renderNewsIntelligence(data['news-feed']);
 
     const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
     const ftEl = document.getElementById('footer-refresh-time');
@@ -5063,6 +5204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderMovers(null);
   renderCongressTrades(null);
   renderNewsSentiment(null);
+  renderNewsIntelligence(null);
 
   // Load live data and override
   await refreshAll();

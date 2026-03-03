@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.error
 import concurrent.futures
 from flask import Flask, send_from_directory, jsonify, request
+from news_feed import aggregate_news_feed
 
 app = Flask(__name__, static_folder="static")
 
@@ -1539,6 +1540,24 @@ def api_related(ticker):
         }), 200, {"Cache-Control": "no-cache"}
     except Exception as e:
         return jsonify({"error": str(e), "ticker": ticker.upper(), "related": []}), 200, {"Cache-Control": "no-cache"}
+
+
+# ── News Intelligence Feed ─────────────────────────────
+@app.route("/api/news-feed")
+def api_news_feed():
+    """Aggregated news from 9 sources with dedup, scoring, categorisation."""
+    category = request.args.get("category", "all")
+    tickers = request.args.get("tickers", "")
+    limit = min(int(request.args.get("limit", "60")), 120)
+    try:
+        result = aggregate_news_feed(
+            category_filter=category,
+            ticker_filter=tickers if tickers else None,
+            limit=limit,
+        )
+        return jsonify(result), 200, {"Cache-Control": "public, max-age=120"}
+    except Exception as e:
+        return jsonify({"error": str(e), "articles": []}), 502
 
 
 # ── Static File Serving ───────────────────────────────────
