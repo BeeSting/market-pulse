@@ -230,16 +230,31 @@ def _dedup_key(title):
     return " ".join(words)
 
 def _dedup_articles(articles):
-    """Fast dedup using exact key matching (no fuzzy)."""
-    seen = set()
+    """Fast dedup using normalised title key + URL dedup."""
+    seen_keys = set()
+    seen_urls = set()
     unique = []
     for a in articles:
+        # URL-based dedup (exact)
+        url = (a.get("url","") or "").strip().rstrip("/")
+        if url and url in seen_urls:
+            continue
+        if url:
+            seen_urls.add(url)
+        # Title-based dedup (normalised first 6 words)
         key = _dedup_key(a.get("title",""))
         if not key or len(key) < 8:
             continue
-        if key in seen:
+        if key in seen_keys:
             continue
-        seen.add(key)
+        seen_keys.add(key)
+        # Also add a shorter 4-word key to catch near-dupes across sources
+        words = key.split()
+        if len(words) >= 4:
+            short_key = " ".join(words[:4])
+            if short_key in seen_keys and len(short_key) > 15:
+                continue
+            seen_keys.add(short_key)
         unique.append(a)
     return unique
 
@@ -438,21 +453,11 @@ def fetch_fmp_articles():
     return articles
 
 def fetch_marketaux():
-    """MarketAux — rich sentiment scoring per entity. Uses http.client for reliability."""
+    """MarketAux — rich sentiment scoring per entity."""
     articles = []
     try:
-        import http.client
-        conn = http.client.HTTPSConnection('api.marketaux.com', timeout=5)
-        params = urllib.parse.urlencode({
-            'api_token': MARKETAUX_KEY,
-            'language': 'en',
-            'must_have_entities': 'true',
-            'limit': 20,
-        })
-        conn.request('GET', f'/v1/news/all?{params}')
-        resp = conn.getresponse()
-        raw = resp.read().decode('utf-8', errors='replace')
-        conn.close()
+        url = f"https://api.marketaux.com/v1/news/all?countries=us&filter_entities=true&limit=20&api_token={MARKETAUX_KEY}"
+        raw = _http_get(url, timeout=6)
         data = json.loads(raw)
         if not data:
             return articles
@@ -637,7 +642,6 @@ def aggregate_news_feed(category_filter=None, ticker_filter=None, limit=60):
             "category_counts": {},
             "articles": [],
             "status": "warming",
-            "_debug": {"refresh_active": _refresh_in_progress, "pid": os.getpid()},
         }
     
     # Trigger background refresh if stale
