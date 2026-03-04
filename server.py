@@ -1554,6 +1554,17 @@ def api_conflict_timeline():
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
+@app.route("/api/debug-env")
+def api_debug_env():
+    oai = os.environ.get("OPENAI_KEY", "")
+    oai2 = os.environ.get("OPENAI_API_KEY", "")
+    return jsonify({
+        "OPENAI_KEY_set": bool(oai),
+        "OPENAI_KEY_len": len(oai) if oai else 0,
+        "OPENAI_API_KEY_set": bool(oai2),
+        "OPENAI_API_KEY_len": len(oai2) if oai2 else 0,
+    })
+
 
 # ── Earnings Results ──────────────────────────────────────
 @app.route("/api/earnings-results")

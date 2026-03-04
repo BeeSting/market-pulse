@@ -18,7 +18,9 @@ import urllib.error
 import concurrent.futures
 
 # ── API Keys ──────────────────────────────────────────────
-OPENAI_KEY  = os.environ.get("OPENAI_KEY",  "")
+def _get_openai_key():
+    return os.environ.get("OPENAI_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+
 MASSIVE_KEY = os.environ.get("MASSIVE_KEY", "8DLmlXSQ8eaVqjUtNPskYcbLhLasNv1I")
 FMP_KEY     = os.environ.get("FMP_KEY",     "EINiL3Pzp1f0YjvQgcnm8t3hBBShCdMd")
 
@@ -138,6 +140,9 @@ def _fetch_market_impact():
 
 def _call_openai(articles, market_data):
     """POST to OpenAI chat completions and return parsed JSON response."""
+    openai_key = _get_openai_key()
+    if not openai_key:
+        raise RuntimeError("OPENAI_KEY not set in environment")
 
     # Build a compact article list for the prompt
     articles_text = ""
@@ -209,7 +214,7 @@ Include 4-8 events in the timeline, most recent first. Do not add any text outsi
         data=payload,
         headers={
             "Content-Type":  "application/json",
-            "Authorization": f"Bearer {OPENAI_KEY}",
+            "Authorization": f"Bearer {openai_key}",
             "User-Agent":    "MarketPulse/2.0",
         },
         method="POST",
